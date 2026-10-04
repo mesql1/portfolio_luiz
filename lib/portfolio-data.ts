@@ -2,7 +2,7 @@ export const profile = {
   github: "https://github.com/mesql1",
   instagram: "https://www.instagram.com/luiz.mesq/",
   linkedin: "https://www.linkedin.com/in/luiz-eduardo-mesquita/",
-  email: "mailto:contato@exemplo.com",
+  email: "mailto:luizmesquitasena@gmail.com",
 };
 
 export const projects = [

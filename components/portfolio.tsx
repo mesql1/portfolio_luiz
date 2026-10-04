@@ -21,21 +21,27 @@ export function Navbar({ active }: { active: string }) {
 
 const projectSlides = {
   discord: ["Busca automática", "Busca por comando", "Configuração do servidor"],
-  finance: ["Resumo mensal", "Receitas e despesas", "Exportação e testes"],
+  finance: ["Transações", "Dashboard", "Contas"],
 } as const;
 
+const financeScreenshots = [
+  "/projects/finance/transacoes.png",
+  "/projects/finance/dashboard.png",
+  "/projects/finance/contas.png",
+] as const;
+
 function ProjectVisual({ kind, name, slide }: { kind: string; name: string; slide: number }) {
+  if (kind === "finance") {
+    const label = projectSlides.finance[slide];
+    return <div className="project-visual project-visual--finance project-visual--screenshot"><img className="project-screenshot" src={financeScreenshots[slide]} alt={`Tela de ${label} do ${name}`} /></div>;
+  }
+
   const discordViews = [
     <div className="discord-content" key="auto"><small># vagas-backend</small><p><i>JOBBOT</i> 10:32</p><strong>3 novas vagas encontradas</strong><span>Python • Remoto • Júnior</span><span>Django • São Paulo • Estágio</span></div>,
     <div className="discord-content" key="command"><small># comandos</small><p><i>VOCÊ</i> 10:34</p><strong>/vagas python remoto</strong><span>Buscando vagas compatíveis...</span><span>Resultados enviados neste canal.</span></div>,
     <div className="discord-content" key="config"><small># jobbot-config</small><p><i>SETUP</i> / SERVIDOR</p><strong>Configuração do servidor</strong><span>canal: #vagas</span><span>filtros: backend • remoto</span></div>,
   ];
-  const financeViews = [
-    <div className="finance-ui" key="summary"><div><small>RESUMO MENSAL</small><strong>Receitas × despesas</strong></div><div className="bars"><i /><i /><i /><i /><i /><i /></div><div className="finance-list"><span>dados.csv</span><span>relatório.py</span><span>✓ testes</span></div></div>,
-    <div className="finance-ui finance-ui--records" key="records"><div><small>LANÇAMENTOS</small><strong>Receitas e despesas</strong></div><div className="record-list"><span><b>Salário</b><i>receita</i></span><span><b>Mercado</b><i>despesa</i></span><span><b>Freelance</b><i>receita</i></span></div></div>,
-    <div className="finance-ui finance-ui--terminal" key="terminal"><div><small>TERMINAL</small><strong>Exportação e testes</strong></div><code>$ pytest<br />✓ testes concluídos<br /><br />$ exportar --formato csv<br />✓ dados.csv gerado</code></div>,
-  ];
-  return <div className={`project-visual project-visual--${kind}`} role="img" aria-label={`Prévia ilustrativa de ${name}: ${kind === "discord" ? projectSlides.discord[slide] : projectSlides.finance[slide]}`}><div className="window-bar"><span /><span /><span /><small>preview / {name.toLowerCase().replace(" ", "-")}</small></div>{kind === "discord" ? <div className="discord-ui"><div className="discord-sidebar"><b>J</b><span /><span /><span /></div>{discordViews[slide]}</div> : financeViews[slide]}<span className="visual-placeholder">PREVIEW {String(slide + 1).padStart(2, "0")}</span></div>;
+  return <div className={`project-visual project-visual--${kind}`} role="img" aria-label={`Prévia ilustrativa de ${name}: ${projectSlides.discord[slide]}`}><div className="window-bar"><span /><span /><span /><small>preview / {name.toLowerCase().replace(" ", "-")}</small></div><div className="discord-ui"><div className="discord-sidebar"><b>J</b><span /><span /><span /></div>{discordViews[slide]}</div><span className="visual-placeholder">PREVIEW {String(slide + 1).padStart(2, "0")}</span></div>;
 }
 
 function ProjectCarousel({ kind, name }: { kind: "discord" | "finance"; name: string }) {
