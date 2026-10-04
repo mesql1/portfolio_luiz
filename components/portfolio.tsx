@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowDown, ArrowUpRight, Code2, Mail, Menu, X } from "lucide-react";
+import { ArrowDown, ArrowUpRight, ChevronLeft, ChevronRight, Code2, Mail, Menu, X } from "lucide-react";
 import { profile, projects, technologyGroups } from "@/lib/portfolio-data";
 
 const navItems = [["sobre", "Sobre"], ["projetos", "Projetos"], ["tecnologias", "Tecnologias"], ["contato", "Contato"]] as const;
@@ -19,12 +19,50 @@ export function Navbar({ active }: { active: string }) {
   return <header className="nav-shell"><a className="brand" href="#inicio" aria-label="Luiz Eduardo, início"><span>Luiz</span><span>Eduardo</span></a><button className="nav-toggle" aria-label="Abrir menu" aria-expanded={open} onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</button><nav className={open ? "nav-links is-open" : "nav-links"} aria-label="Navegação principal">{navItems.map(([id, label]) => <a key={id} className={active === id ? "active" : ""} href={`#${id}`} onClick={() => setOpen(false)}>{label}</a>)}<a className="nav-github" href={profile.github} target="_blank" rel="noreferrer"><Code2 size={15} /> GitHub</a></nav></header>;
 }
 
-function ProjectVisual({ kind, name }: { kind: string; name: string }) {
-  return <div className={`project-visual project-visual--${kind}`} role="img" aria-label={`Espaço reservado para screenshot do projeto ${name}`}><div className="window-bar"><span /><span /><span /><small>preview / {name.toLowerCase().replace(" ", "-")}</small></div>{kind === "discord" ? <div className="discord-ui"><div className="discord-sidebar"><b>J</b><span /><span /><span /></div><div className="discord-content"><small># vagas-backend</small><p><i>JOBBOT</i> 10:32</p><strong>3 novas vagas encontradas</strong><span>Python • Remoto • Júnior</span><span>Django • São Paulo • Estágio</span></div></div> : <div className="finance-ui"><div><small>RESUMO MENSAL</small><strong>Receitas × despesas</strong></div><div className="bars"><i /><i /><i /><i /><i /><i /></div><div className="finance-list"><span>dados.csv</span><span>relatório.py</span><span>✓ testes</span></div></div>}<span className="visual-placeholder">SCREENSHOT / GIF</span></div>;
+const projectSlides = {
+  discord: ["Busca automática", "Busca por comando", "Configuração do servidor"],
+  finance: ["Resumo mensal", "Receitas e despesas", "Exportação e testes"],
+} as const;
+
+function ProjectVisual({ kind, name, slide }: { kind: string; name: string; slide: number }) {
+  const discordViews = [
+    <div className="discord-content" key="auto"><small># vagas-backend</small><p><i>JOBBOT</i> 10:32</p><strong>3 novas vagas encontradas</strong><span>Python • Remoto • Júnior</span><span>Django • São Paulo • Estágio</span></div>,
+    <div className="discord-content" key="command"><small># comandos</small><p><i>VOCÊ</i> 10:34</p><strong>/vagas python remoto</strong><span>Buscando vagas compatíveis...</span><span>Resultados enviados neste canal.</span></div>,
+    <div className="discord-content" key="config"><small># jobbot-config</small><p><i>SETUP</i> / SERVIDOR</p><strong>Configuração do servidor</strong><span>canal: #vagas</span><span>filtros: backend • remoto</span></div>,
+  ];
+  const financeViews = [
+    <div className="finance-ui" key="summary"><div><small>RESUMO MENSAL</small><strong>Receitas × despesas</strong></div><div className="bars"><i /><i /><i /><i /><i /><i /></div><div className="finance-list"><span>dados.csv</span><span>relatório.py</span><span>✓ testes</span></div></div>,
+    <div className="finance-ui finance-ui--records" key="records"><div><small>LANÇAMENTOS</small><strong>Receitas e despesas</strong></div><div className="record-list"><span><b>Salário</b><i>receita</i></span><span><b>Mercado</b><i>despesa</i></span><span><b>Freelance</b><i>receita</i></span></div></div>,
+    <div className="finance-ui finance-ui--terminal" key="terminal"><div><small>TERMINAL</small><strong>Exportação e testes</strong></div><code>$ pytest<br />✓ testes concluídos<br /><br />$ exportar --formato csv<br />✓ dados.csv gerado</code></div>,
+  ];
+  return <div className={`project-visual project-visual--${kind}`} role="img" aria-label={`Prévia ilustrativa de ${name}: ${kind === "discord" ? projectSlides.discord[slide] : projectSlides.finance[slide]}`}><div className="window-bar"><span /><span /><span /><small>preview / {name.toLowerCase().replace(" ", "-")}</small></div>{kind === "discord" ? <div className="discord-ui"><div className="discord-sidebar"><b>J</b><span /><span /><span /></div>{discordViews[slide]}</div> : financeViews[slide]}<span className="visual-placeholder">PREVIEW {String(slide + 1).padStart(2, "0")}</span></div>;
+}
+
+function ProjectCarousel({ kind, name }: { kind: "discord" | "finance"; name: string }) {
+  const slides = projectSlides[kind];
+  const [current, setCurrent] = useState(0);
+  const [direction, setDirection] = useState<"next" | "prev">("next");
+  const [pointerStart, setPointerStart] = useState<number | null>(null);
+  const go = (delta: number) => {
+    setDirection(delta > 0 ? "next" : "prev");
+    setCurrent(value => (value + delta + slides.length) % slides.length);
+  };
+  const previous = (current - 1 + slides.length) % slides.length;
+  const next = (current + 1) % slides.length;
+  return <figure className="project-carousel" tabIndex={0} aria-label={`Galeria de ${name}`} onKeyDown={event => { if (event.key === "ArrowLeft") go(-1); if (event.key === "ArrowRight") go(1); }} onPointerDown={event => setPointerStart(event.clientX)} onPointerUp={event => { if (pointerStart === null) return; const distance = event.clientX - pointerStart; if (Math.abs(distance) > 48) go(distance < 0 ? 1 : -1); setPointerStart(null); }}>
+    <div className={`project-carousel__stage is-${direction}`}>
+      <button className="carousel-arrow carousel-arrow--left" onClick={() => go(-1)} aria-label={`Imagem anterior de ${name}`}><ChevronLeft aria-hidden="true" /></button>
+      <button className="project-carousel__slot project-carousel__slot--side project-carousel__slot--left" onClick={() => go(-1)} aria-label={`Ver ${slides[previous]}`}><ProjectVisual kind={kind} name={name} slide={previous} /></button>
+      <div key={`${current}-${direction}`} className="project-carousel__slot project-carousel__slot--center"><ProjectVisual kind={kind} name={name} slide={current} /></div>
+      <button className="project-carousel__slot project-carousel__slot--side project-carousel__slot--right" onClick={() => go(1)} aria-label={`Ver ${slides[next]}`}><ProjectVisual kind={kind} name={name} slide={next} /></button>
+      <button className="carousel-arrow carousel-arrow--right" onClick={() => go(1)} aria-label={`Próxima imagem de ${name}`}><ChevronRight aria-hidden="true" /></button>
+    </div>
+    <div className="project-carousel__footer"><figcaption aria-live="polite"><span>{String(current + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}</span>{slides[current]}</figcaption><div className="carousel-dots" aria-label="Selecionar imagem">{slides.map((label, index) => <button key={label} className={index === current ? "active" : ""} onClick={() => { setDirection(index > current ? "next" : "prev"); setCurrent(index); }} aria-label={`Ver ${label}`} aria-current={index === current ? "true" : undefined} />)}</div></div>
+  </figure>;
 }
 
 export function ProjectCard({ project, reverse = false }: { project: (typeof projects)[number]; reverse?: boolean }) {
-  return <article className={`project-card reveal ${reverse ? "project-card--reverse" : ""}`}><div className="project-card__copy"><div className="project-number">{project.number} / SELECTED</div><h3>{project.name}</h3><p>{project.description}</p><div className="tag-list">{project.technologies.map(item => <span key={item}>{item}</span>)}</div><ul>{project.highlights.map(item => <li key={item}>{item}</li>)}</ul><Button href={project.href} variant="outline">Ver no GitHub</Button></div><ProjectVisual kind={project.visual} name={project.name} /></article>;
+  return <article className={`project-card reveal ${reverse ? "project-card--reverse" : ""}`}><div className="project-card__header"><div className="project-card__copy"><div className="project-number">{project.number} / SELECTED</div><h3>{project.name}</h3><p>{project.description}</p><div className="tag-list">{project.technologies.map(item => <span key={item}>{item}</span>)}</div><Button href={project.href} variant="outline">Ver no GitHub</Button></div><ul className="project-highlights">{project.highlights.map(item => <li key={item}>{item}</li>)}</ul></div><ProjectCarousel kind={project.visual} name={project.name} /></article>;
 }
 
 export function TechnologyGroup({ group, index }: { group: (typeof technologyGroups)[number]; index: number }) {
