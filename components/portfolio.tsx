@@ -41,23 +41,35 @@ function ProjectVisual({ kind, name, slide }: { kind: string; name: string; slid
 function ProjectCarousel({ kind, name }: { kind: "discord" | "finance"; name: string }) {
   const slides = projectSlides[kind];
   const [current, setCurrent] = useState(0);
-  const [direction, setDirection] = useState<"next" | "prev">("next");
+  const [transition, setTransition] = useState<{ from: number; to: number; direction: "next" | "prev" } | null>(null);
   const [pointerStart, setPointerStart] = useState<number | null>(null);
   const go = (delta: number) => {
-    setDirection(delta > 0 ? "next" : "prev");
-    setCurrent(value => (value + delta + slides.length) % slides.length);
+    if (transition) return;
+    setTransition({ from: current, to: (current + delta + slides.length) % slides.length, direction: delta > 0 ? "next" : "prev" });
+  };
+  const goTo = (index: number) => {
+    if (transition || index === current) return;
+    const forward = (index - current + slides.length) % slides.length;
+    const backward = (current - index + slides.length) % slides.length;
+    setTransition({ from: current, to: index, direction: forward <= backward ? "next" : "prev" });
+  };
+  const finishTransition = () => {
+    if (!transition) return;
+    setCurrent(transition.to);
+    setTransition(null);
   };
   const previous = (current - 1 + slides.length) % slides.length;
   const next = (current + 1) % slides.length;
+  const visible = transition?.to ?? current;
   return <figure className="project-carousel" tabIndex={0} aria-label={`Galeria de ${name}`} onKeyDown={event => { if (event.key === "ArrowLeft") go(-1); if (event.key === "ArrowRight") go(1); }} onPointerDown={event => setPointerStart(event.clientX)} onPointerUp={event => { if (pointerStart === null) return; const distance = event.clientX - pointerStart; if (Math.abs(distance) > 48) go(distance < 0 ? 1 : -1); setPointerStart(null); }}>
-    <div key={`stage-${current}-${direction}`} className={`project-carousel__stage is-${direction}`}>
-      <button className="carousel-arrow carousel-arrow--left" onClick={() => go(-1)} aria-label={`Imagem anterior de ${name}`}><ChevronLeft aria-hidden="true" /></button>
-      <button className="project-carousel__slot project-carousel__slot--side project-carousel__slot--left" onClick={() => go(-1)} aria-label={`Ver ${slides[previous]}`}><ProjectVisual kind={kind} name={name} slide={previous} /></button>
-      <div className="project-carousel__slot project-carousel__slot--center"><ProjectVisual kind={kind} name={name} slide={current} /></div>
-      <button className="project-carousel__slot project-carousel__slot--side project-carousel__slot--right" onClick={() => go(1)} aria-label={`Ver ${slides[next]}`}><ProjectVisual kind={kind} name={name} slide={next} /></button>
-      <button className="carousel-arrow carousel-arrow--right" onClick={() => go(1)} aria-label={`Próxima imagem de ${name}`}><ChevronRight aria-hidden="true" /></button>
+    <div className={`project-carousel__stage ${transition ? `is-transitioning is-${transition.direction}` : ""}`} aria-busy={transition ? "true" : undefined}>
+      <button className="carousel-arrow carousel-arrow--left" onClick={() => go(-1)} disabled={!!transition} aria-label={`Imagem anterior de ${name}`}><ChevronLeft aria-hidden="true" /></button>
+      <button className="project-carousel__slot project-carousel__slot--side project-carousel__slot--left" onClick={() => go(-1)} disabled={!!transition} aria-label={`Ver ${slides[previous]}`}><ProjectVisual kind={kind} name={name} slide={previous} /></button>
+      <div className="project-carousel__slot project-carousel__slot--center">{transition ? <><div className={`carousel-frame carousel-frame--out carousel-frame--${transition.direction}`}><ProjectVisual kind={kind} name={name} slide={transition.from} /></div><div className={`carousel-frame carousel-frame--in carousel-frame--${transition.direction}`} onAnimationEnd={finishTransition}><ProjectVisual kind={kind} name={name} slide={transition.to} /></div></> : <div className="carousel-frame"><ProjectVisual kind={kind} name={name} slide={current} /></div>}</div>
+      <button className="project-carousel__slot project-carousel__slot--side project-carousel__slot--right" onClick={() => go(1)} disabled={!!transition} aria-label={`Ver ${slides[next]}`}><ProjectVisual kind={kind} name={name} slide={next} /></button>
+      <button className="carousel-arrow carousel-arrow--right" onClick={() => go(1)} disabled={!!transition} aria-label={`Próxima imagem de ${name}`}><ChevronRight aria-hidden="true" /></button>
     </div>
-    <div className="project-carousel__footer"><figcaption aria-live="polite"><span>{String(current + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}</span>{slides[current]}</figcaption><div className="carousel-dots" aria-label="Selecionar imagem">{slides.map((label, index) => <button key={label} className={index === current ? "active" : ""} onClick={() => { setDirection(index > current ? "next" : "prev"); setCurrent(index); }} aria-label={`Ver ${label}`} aria-current={index === current ? "true" : undefined} />)}</div></div>
+    <div className="project-carousel__footer"><figcaption aria-live="polite"><span>{String(visible + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}</span>{slides[visible]}</figcaption><div className="carousel-dots" aria-label="Selecionar imagem">{slides.map((label, index) => <button key={label} className={index === visible ? "active" : ""} disabled={!!transition} onClick={() => goTo(index)} aria-label={`Ver ${label}`} aria-current={index === visible ? "true" : undefined} />)}</div></div>
   </figure>;
 }
 
