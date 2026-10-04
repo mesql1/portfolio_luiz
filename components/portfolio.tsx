@@ -20,28 +20,25 @@ export function Navbar({ active }: { active: string }) {
 }
 
 const projectSlides = {
-  discord: ["Busca automática", "Busca por comando", "Configuração do servidor"],
+  discord: ["Busca por comando", "Busca automática"],
   finance: ["Transações", "Dashboard", "Contas"],
 } as const;
 
-const financeScreenshots = [
-  "/projects/finance/transacoes.png",
-  "/projects/finance/dashboard.png",
-  "/projects/finance/contas.png",
-] as const;
+const projectScreenshots = {
+  discord: [
+    "/projects/jobbot/busca-comando.png",
+    "/projects/jobbot/busca-automatica.png",
+  ],
+  finance: [
+    "/projects/finance/transacoes.png",
+    "/projects/finance/dashboard.png",
+    "/projects/finance/contas.png",
+  ],
+} as const;
 
-function ProjectVisual({ kind, name, slide }: { kind: string; name: string; slide: number }) {
-  if (kind === "finance") {
-    const label = projectSlides.finance[slide];
-    return <div className="project-visual project-visual--finance project-visual--screenshot"><img className="project-screenshot" src={financeScreenshots[slide]} alt={`Tela de ${label} do ${name}`} /></div>;
-  }
-
-  const discordViews = [
-    <div className="discord-content" key="auto"><small># vagas-backend</small><p><i>JOBBOT</i> 10:32</p><strong>3 novas vagas encontradas</strong><span>Python • Remoto • Júnior</span><span>Django • São Paulo • Estágio</span></div>,
-    <div className="discord-content" key="command"><small># comandos</small><p><i>VOCÊ</i> 10:34</p><strong>/vagas python remoto</strong><span>Buscando vagas compatíveis...</span><span>Resultados enviados neste canal.</span></div>,
-    <div className="discord-content" key="config"><small># jobbot-config</small><p><i>SETUP</i> / SERVIDOR</p><strong>Configuração do servidor</strong><span>canal: #vagas</span><span>filtros: backend • remoto</span></div>,
-  ];
-  return <div className={`project-visual project-visual--${kind}`} role="img" aria-label={`Prévia ilustrativa de ${name}: ${projectSlides.discord[slide]}`}><div className="window-bar"><span /><span /><span /><small>preview / {name.toLowerCase().replace(" ", "-")}</small></div><div className="discord-ui"><div className="discord-sidebar"><b>J</b><span /><span /><span /></div>{discordViews[slide]}</div><span className="visual-placeholder">PREVIEW {String(slide + 1).padStart(2, "0")}</span></div>;
+function ProjectVisual({ kind, name, slide }: { kind: "discord" | "finance"; name: string; slide: number }) {
+  const label = projectSlides[kind][slide];
+  return <div className={`project-visual project-visual--${kind} project-visual--screenshot`}><img className="project-screenshot" src={projectScreenshots[kind][slide]} alt={`Tela de ${label} do ${name}`} /></div>;
 }
 
 function ProjectCarousel({ kind, name }: { kind: "discord" | "finance"; name: string }) {
