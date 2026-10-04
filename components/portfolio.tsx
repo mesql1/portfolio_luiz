@@ -50,10 +50,10 @@ function ProjectCarousel({ kind, name }: { kind: "discord" | "finance"; name: st
   const previous = (current - 1 + slides.length) % slides.length;
   const next = (current + 1) % slides.length;
   return <figure className="project-carousel" tabIndex={0} aria-label={`Galeria de ${name}`} onKeyDown={event => { if (event.key === "ArrowLeft") go(-1); if (event.key === "ArrowRight") go(1); }} onPointerDown={event => setPointerStart(event.clientX)} onPointerUp={event => { if (pointerStart === null) return; const distance = event.clientX - pointerStart; if (Math.abs(distance) > 48) go(distance < 0 ? 1 : -1); setPointerStart(null); }}>
-    <div className={`project-carousel__stage is-${direction}`}>
+    <div key={`stage-${current}-${direction}`} className={`project-carousel__stage is-${direction}`}>
       <button className="carousel-arrow carousel-arrow--left" onClick={() => go(-1)} aria-label={`Imagem anterior de ${name}`}><ChevronLeft aria-hidden="true" /></button>
       <button className="project-carousel__slot project-carousel__slot--side project-carousel__slot--left" onClick={() => go(-1)} aria-label={`Ver ${slides[previous]}`}><ProjectVisual kind={kind} name={name} slide={previous} /></button>
-      <div key={`${current}-${direction}`} className="project-carousel__slot project-carousel__slot--center"><ProjectVisual kind={kind} name={name} slide={current} /></div>
+      <div className="project-carousel__slot project-carousel__slot--center"><ProjectVisual kind={kind} name={name} slide={current} /></div>
       <button className="project-carousel__slot project-carousel__slot--side project-carousel__slot--right" onClick={() => go(1)} aria-label={`Ver ${slides[next]}`}><ProjectVisual kind={kind} name={name} slide={next} /></button>
       <button className="carousel-arrow carousel-arrow--right" onClick={() => go(1)} aria-label={`Próxima imagem de ${name}`}><ChevronRight aria-hidden="true" /></button>
     </div>
