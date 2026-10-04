@@ -62,7 +62,7 @@ function ProjectCarousel({ kind, name }: { kind: "discord" | "finance"; name: st
 }
 
 export function ProjectCard({ project, reverse = false }: { project: (typeof projects)[number]; reverse?: boolean }) {
-  return <article className={`project-card reveal ${reverse ? "project-card--reverse" : ""}`}><div className="project-card__header"><div className="project-card__copy"><div className="project-number">{project.number} / SELECTED</div><h3>{project.name}</h3><p>{project.description}</p><div className="tag-list">{project.technologies.map(item => <span key={item}>{item}</span>)}</div><Button href={project.href} variant="outline">Ver no GitHub</Button></div><ul className="project-highlights">{project.highlights.map(item => <li key={item}>{item}</li>)}</ul></div><ProjectCarousel kind={project.visual} name={project.name} /></article>;
+  return <article className={`project-card reveal ${reverse ? "project-card--reverse" : ""}`}><div className="project-card__copy"><div className="project-number">{project.number} / SELECTED</div><h3>{project.name}</h3><p>{project.description}</p><div className="tag-list">{project.technologies.map(item => <span key={item}>{item}</span>)}</div><ul className="project-highlights">{project.highlights.map(item => <li key={item}>{item}</li>)}</ul><Button href={project.href} variant="outline">Ver no GitHub</Button></div><ProjectCarousel kind={project.visual} name={project.name} /></article>;
 }
 
 export function TechnologyGroup({ group, index }: { group: (typeof technologyGroups)[number]; index: number }) {
