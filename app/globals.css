@@ -101,7 +101,7 @@ button,a { -webkit-tap-highlight-color:transparent; }
 .project-scroll-gallery__frame.is-active { z-index:2; pointer-events:auto; }
 .project-scroll-gallery__frame .project-visual { width:min(100%,920px); min-height:0; max-height:min(62vh,620px); aspect-ratio:1.88/1; padding:0; border-radius:24px; background:#202124; }
 .project-scroll-gallery--discord .project-scroll-gallery__frame .project-visual { width:min(76%,590px); height:min(64vh,620px); aspect-ratio:auto; background:#070709; }
-.project-scroll-gallery__hint { position:absolute; z-index:4; right:22px; bottom:1.5%; color:#555; font:9px/1 var(--mono); letter-spacing:.12em; text-transform:uppercase; writing-mode:vertical-rl; }
+.project-scroll-gallery__hint { position:absolute; z-index:4; right:26px; bottom:22px; color:#555; font:9px/1 var(--mono); letter-spacing:.12em; text-transform:uppercase; white-space:nowrap; }
 .project-scroll-gallery__footer { position:relative; z-index:4; display:flex; align-items:center; justify-content:space-between; gap:24px; margin-top:4px; }
 .project-scroll-gallery figcaption { display:flex; align-items:center; gap:16px; color:#aaa; font:12px/1 var(--mono); text-transform:uppercase; letter-spacing:.05em; }
 .project-scroll-gallery figcaption span { color:#555; }
