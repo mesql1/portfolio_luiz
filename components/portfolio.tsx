@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowUpRight, BriefcaseBusiness, Camera, ChevronLeft, ChevronRight, Code2, Mail, Menu, X } from "lucide-react";
 import { profile, projects, technologyGroups } from "@/lib/portfolio-data";
 
@@ -118,6 +118,14 @@ export function ProjectCard({ project, reverse = false }: { project: (typeof pro
       const stickyTop = 110;
       const scrollable = Math.max(card.offsetHeight - window.innerHeight, 1);
       const progress = Math.min(1, Math.max(0, (-rect.top + stickyTop) / scrollable));
+      card.style.setProperty("--project-progress", progress.toFixed(4));
+      card.style.setProperty("--project-copy-y", `${((.5 - progress) * 28).toFixed(2)}px`);
+      card.style.setProperty("--project-title-shift", `${((reverse ? 1 : -1) * progress * 18).toFixed(2)}vw`);
+      card.style.setProperty("--project-line-x", `${(progress * 100).toFixed(2)}%`);
+      card.style.setProperty("--project-scan-y", `${(8 + progress * 84).toFixed(2)}%`);
+      card.style.setProperty("--project-mask-y", `${((1 - progress) * 3.5).toFixed(2)}%`);
+      card.style.setProperty("--project-mask-x", `${((1 - progress) * 2.5).toFixed(2)}%`);
+      card.style.setProperty("--project-scale", (.94 + progress * .06).toFixed(4));
       setCurrent(Math.round(progress * (slideCount - 1)));
     };
     const scheduleUpdate = () => { if (!frame) frame = window.requestAnimationFrame(update); };
@@ -125,7 +133,7 @@ export function ProjectCard({ project, reverse = false }: { project: (typeof pro
     window.addEventListener("scroll", scheduleUpdate, { passive: true });
     window.addEventListener("resize", scheduleUpdate);
     return () => { window.removeEventListener("scroll", scheduleUpdate); window.removeEventListener("resize", scheduleUpdate); if (frame) window.cancelAnimationFrame(frame); };
-  }, [slideCount]);
+  }, [reverse, slideCount]);
 
   const scrollToSlide = (index: number) => {
     const card = cardRef.current;
@@ -136,7 +144,7 @@ export function ProjectCard({ project, reverse = false }: { project: (typeof pro
     window.scrollTo({ top: cardTop - 110 + scrollable * progress, behavior: "smooth" });
   };
 
-  return <article ref={cardRef} className={`project-card project-card--scroll reveal ${reverse ? "project-card--reverse" : ""}`} style={{ "--slide-count": slideCount } as CSSProperties}><div className="project-card__sticky"><div className="project-card__copy"><div className="project-number">{project.number} / SELECTED</div><h3>{project.name}</h3><p>{project.description}</p><div className="tag-list">{project.technologies.map(item => <span key={item}>{item}</span>)}</div><ul className="project-highlights">{project.highlights.map(item => <li key={item}>{item}</li>)}</ul><Button href={project.href} variant="outline">Ver no GitHub</Button></div><ProjectScrollGallery kind={project.visual} name={project.name} current={current} onSelect={scrollToSlide} /><ProjectCarousel kind={project.visual} name={project.name} /></div></article>;
+  return <article ref={cardRef} className={`project-card project-card--scroll reveal ${reverse ? "project-card--reverse" : ""}`} style={{ "--slide-count": slideCount } as CSSProperties}><div className="project-card__sticky"><div className="project-card__cinematic" aria-hidden="true"><span>{project.name}</span><i /><small>{String(current + 1).padStart(2, "0")} / {String(slideCount).padStart(2, "0")}</small></div><div className="project-card__copy"><div className="project-number">{project.number} / SELECTED</div><h3>{project.name}</h3><p>{project.description}</p><div className="tag-list">{project.technologies.map(item => <span key={item}>{item}</span>)}</div><ul className="project-highlights">{project.highlights.map(item => <li key={item}>{item}</li>)}</ul><Button href={project.href} variant="outline">Ver no GitHub</Button></div><ProjectScrollGallery kind={project.visual} name={project.name} current={current} onSelect={scrollToSlide} /><ProjectCarousel kind={project.visual} name={project.name} /></div></article>;
 }
 
 export function TechnologyGroup({ group, index }: { group: (typeof technologyGroups)[number]; index: number }) {
@@ -153,40 +161,8 @@ export function Footer() {
   return <footer><div><strong>Luiz Mesquita</strong><span>Backend Developer</span></div><p>Python / Django / APIs</p><p>© {new Date().getFullYear()} — Feito com código &amp; café.</p></footer>;
 }
 
-function CinematicIntro({ onReveal, onComplete }: { onReveal: () => void; onComplete: () => void }) {
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      onReveal();
-      onComplete();
-      return;
-    }
-
-    const revealTimeout = window.setTimeout(onReveal, 2200);
-    const completeTimeout = window.setTimeout(onComplete, 3100);
-    return () => { window.clearTimeout(revealTimeout); window.clearTimeout(completeTimeout); };
-  }, [onComplete, onReveal]);
-
-  return <div className="cinematic-intro" aria-hidden="true">
-    <div className="cinematic-intro__grain" />
-    <div className="cinematic-intro__rail"><span /></div>
-    <div className="cinematic-intro__meta"><span>PORTFÓLIO / 2026</span><span>PYTHON · APIs · AUTOMAÇÃO</span></div>
-    <div className="cinematic-intro__stage">
-      <span className="cinematic-intro__word cinematic-intro__word--one">LUIZ</span>
-      <span className="cinematic-intro__word cinematic-intro__word--two">MESQUITA</span>
-      <span className="cinematic-intro__word cinematic-intro__word--three">BACKEND</span>
-    </div>
-    <div className="cinematic-intro__counter"><span>01</span><i /><span>03</span></div>
-    <div className="cinematic-intro__panel cinematic-intro__panel--left" />
-    <div className="cinematic-intro__panel cinematic-intro__panel--right" />
-  </div>;
-}
-
 export function Portfolio() {
   const [active, setActive] = useState("inicio");
-  const [introRevealing, setIntroRevealing] = useState(false);
-  const [introDone, setIntroDone] = useState(false);
-  const revealHero = useCallback(() => setIntroRevealing(true), []);
-  const finishIntro = useCallback(() => setIntroDone(true), []);
   useEffect(() => {
     const sections = document.querySelectorAll<HTMLElement>("section[id]");
     const observer = new IntersectionObserver(entries => entries.forEach(entry => entry.isIntersecting && setActive(entry.target.id)), { rootMargin: "-35% 0px -55%" });
@@ -197,8 +173,8 @@ export function Portfolio() {
     return () => { observer.disconnect(); revealObserver.disconnect(); };
   }, []);
 
-  return <>{!introDone && <CinematicIntro onReveal={revealHero} onComplete={finishIntro} />}<Navbar active={active} /><main>
-    <section id="inicio" className={`hero ${introRevealing ? "hero--ready" : ""}`}><div className="orbit orbit--hero" aria-hidden="true" /><div className="hero__eyebrow"><span>PORTFÓLIO / 2026</span><span>BASED IN BRAZIL</span></div><h1><span>backend</span><span>developer<i>.</i></span></h1><div className="hero__bottom"><div><p>Desenvolvo aplicações backend, integrações com APIs e sistemas focados em automação e organização de dados.</p><div className="tag-list"><span>Python</span><span>Django</span><span>APIs</span><span>Automação</span></div></div><div className="hero__actions"><Button href="#projetos">Ver projetos</Button><Button href={profile.github} variant="outline">GitHub</Button></div></div><a className="scroll-cue" href="#projetos" aria-label="Rolar até projetos"><ArrowDown /><span>SCROLL</span></a></section>
+  return <><Navbar active={active} /><main>
+    <section id="inicio" className="hero"><div className="orbit orbit--hero" aria-hidden="true" /><div className="hero__eyebrow"><span>PORTFÓLIO / 2026</span><span>BASED IN BRAZIL</span></div><h1><span>backend</span><span>developer<i>.</i></span></h1><div className="hero__bottom"><div><p>Desenvolvo aplicações backend, integrações com APIs e sistemas focados em automação e organização de dados.</p><div className="tag-list"><span>Python</span><span>Django</span><span>APIs</span><span>Automação</span></div></div><div className="hero__actions"><Button href="#projetos">Ver projetos</Button><Button href={profile.github} variant="outline">GitHub</Button></div></div><a className="scroll-cue" href="#projetos" aria-label="Rolar até projetos"><ArrowDown /><span>SCROLL</span></a></section>
     <section id="sobre" className="section about-section"><div className="orbit orbit--about" aria-hidden="true" /><SectionTitle index="01">Sobre mim</SectionTitle><div className="about-grid"><div className="about-copy reveal"><p className="lead">Olá, sou Luiz Mesquita, desenvolvedor com foco em <em>backend.</em></p><p>Atualmente desenvolvo projetos principalmente utilizando Python e venho aprofundando meus conhecimentos em desenvolvimento web, APIs, bancos de dados, automação e arquitetura de software.</p><p>Gosto de transformar problemas em aplicações funcionais, organizadas e fáceis de manter.</p></div><div className="identity-card identity-card--portrait reveal"><img className="identity-photo" src="profile/luiz-mesquita.png" alt="Luiz Mesquita" /><div className="identity-card__portrait-copy"><span>BACKEND DEVELOPER</span><strong>Luiz Mesquita</strong><p>Construindo, aprendendo,<br />evoluindo.</p><code>Python · APIs · Automação</code></div></div></div></section>
     <section id="projetos" className="section projects-section"><SectionTitle index="02">Projetos selecionados</SectionTitle><ProjectCard project={projects[0]} /><ProjectCard project={projects[1]} reverse /><article className="coming-soon reveal"><span>03</span><div><small>EM DESENVOLVIMENTO</small><h3>Novos projetos backend e APIs em desenvolvimento.</h3></div><code>{"{ work_in_progress: true }"}</code></article></section>
     <section id="tecnologias" className="section tech-section"><SectionTitle index="03">Tecnologias</SectionTitle><div className="tech-intro"><h2>ferramentas<br />de trabalho<span>.</span></h2><p>Algumas tecnologias que utilizo nos meus projetos.</p></div><div className="tech-grid">{technologyGroups.map((group, index) => <TechnologyGroup key={group.title} group={group} index={index} />)}</div></section>
@@ -206,3 +182,4 @@ export function Portfolio() {
     <section id="contato" className="section contact-section"><div className="orbit orbit--contact" aria-hidden="true" /><span className="contact-index">05 / CONTATO</span><h2>VAMOS<br /><span>CONVERSAR</span><i>?</i></h2><p>Tem uma oportunidade, projeto ou quer conversar sobre desenvolvimento?</p><div className="social-list"><SocialLink href={profile.github} icon={<Code2 />}>GitHub</SocialLink><SocialLink href={profile.linkedin} icon={<BriefcaseBusiness />}>LinkedIn</SocialLink><SocialLink href={profile.instagram} icon={<Camera />}>Instagram</SocialLink><SocialLink href={profile.email} icon={<Mail />}>E-mail</SocialLink></div></section>
   </main><Footer /></>;
 }
+
