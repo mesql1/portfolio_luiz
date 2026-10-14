@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowUpRight, BriefcaseBusiness, Camera, ChevronLeft, ChevronRight, Code2, Mail, Menu, X } from "lucide-react";
 import { profile, projects, technologyGroups } from "@/lib/portfolio-data";
 
@@ -153,8 +153,40 @@ export function Footer() {
   return <footer><div><strong>Luiz Mesquita</strong><span>Backend Developer</span></div><p>Python / Django / APIs</p><p>© {new Date().getFullYear()} — Feito com código &amp; café.</p></footer>;
 }
 
+function CinematicIntro({ onReveal, onComplete }: { onReveal: () => void; onComplete: () => void }) {
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      onReveal();
+      onComplete();
+      return;
+    }
+
+    const revealTimeout = window.setTimeout(onReveal, 2200);
+    const completeTimeout = window.setTimeout(onComplete, 3100);
+    return () => { window.clearTimeout(revealTimeout); window.clearTimeout(completeTimeout); };
+  }, [onComplete, onReveal]);
+
+  return <div className="cinematic-intro" aria-hidden="true">
+    <div className="cinematic-intro__grain" />
+    <div className="cinematic-intro__rail"><span /></div>
+    <div className="cinematic-intro__meta"><span>PORTFÓLIO / 2026</span><span>PYTHON · APIs · AUTOMAÇÃO</span></div>
+    <div className="cinematic-intro__stage">
+      <span className="cinematic-intro__word cinematic-intro__word--one">LUIZ</span>
+      <span className="cinematic-intro__word cinematic-intro__word--two">MESQUITA</span>
+      <span className="cinematic-intro__word cinematic-intro__word--three">BACKEND</span>
+    </div>
+    <div className="cinematic-intro__counter"><span>01</span><i /><span>03</span></div>
+    <div className="cinematic-intro__panel cinematic-intro__panel--left" />
+    <div className="cinematic-intro__panel cinematic-intro__panel--right" />
+  </div>;
+}
+
 export function Portfolio() {
   const [active, setActive] = useState("inicio");
+  const [introRevealing, setIntroRevealing] = useState(false);
+  const [introDone, setIntroDone] = useState(false);
+  const revealHero = useCallback(() => setIntroRevealing(true), []);
+  const finishIntro = useCallback(() => setIntroDone(true), []);
   useEffect(() => {
     const sections = document.querySelectorAll<HTMLElement>("section[id]");
     const observer = new IntersectionObserver(entries => entries.forEach(entry => entry.isIntersecting && setActive(entry.target.id)), { rootMargin: "-35% 0px -55%" });
@@ -165,8 +197,8 @@ export function Portfolio() {
     return () => { observer.disconnect(); revealObserver.disconnect(); };
   }, []);
 
-  return <><Navbar active={active} /><main>
-    <section id="inicio" className="hero"><div className="orbit orbit--hero" aria-hidden="true" /><div className="hero__eyebrow"><span>PORTFÓLIO / 2026</span><span>BASED IN BRAZIL</span></div><h1><span>backend</span><span>developer<i>.</i></span></h1><div className="hero__bottom"><div><p>Desenvolvo aplicações backend, integrações com APIs e sistemas focados em automação e organização de dados.</p><div className="tag-list"><span>Python</span><span>Django</span><span>APIs</span><span>Automação</span></div></div><div className="hero__actions"><Button href="#projetos">Ver projetos</Button><Button href={profile.github} variant="outline">GitHub</Button></div></div><a className="scroll-cue" href="#projetos" aria-label="Rolar até projetos"><ArrowDown /><span>SCROLL</span></a></section>
+  return <>{!introDone && <CinematicIntro onReveal={revealHero} onComplete={finishIntro} />}<Navbar active={active} /><main>
+    <section id="inicio" className={`hero ${introRevealing ? "hero--ready" : ""}`}><div className="orbit orbit--hero" aria-hidden="true" /><div className="hero__eyebrow"><span>PORTFÓLIO / 2026</span><span>BASED IN BRAZIL</span></div><h1><span>backend</span><span>developer<i>.</i></span></h1><div className="hero__bottom"><div><p>Desenvolvo aplicações backend, integrações com APIs e sistemas focados em automação e organização de dados.</p><div className="tag-list"><span>Python</span><span>Django</span><span>APIs</span><span>Automação</span></div></div><div className="hero__actions"><Button href="#projetos">Ver projetos</Button><Button href={profile.github} variant="outline">GitHub</Button></div></div><a className="scroll-cue" href="#projetos" aria-label="Rolar até projetos"><ArrowDown /><span>SCROLL</span></a></section>
     <section id="sobre" className="section about-section"><div className="orbit orbit--about" aria-hidden="true" /><SectionTitle index="01">Sobre mim</SectionTitle><div className="about-grid"><div className="about-copy reveal"><p className="lead">Olá, sou Luiz Mesquita, desenvolvedor com foco em <em>backend.</em></p><p>Atualmente desenvolvo projetos principalmente utilizando Python e venho aprofundando meus conhecimentos em desenvolvimento web, APIs, bancos de dados, automação e arquitetura de software.</p><p>Gosto de transformar problemas em aplicações funcionais, organizadas e fáceis de manter.</p></div><div className="identity-card identity-card--portrait reveal"><img className="identity-photo" src="profile/luiz-mesquita.png" alt="Luiz Mesquita" /><div className="identity-card__portrait-copy"><span>BACKEND DEVELOPER</span><strong>Luiz Mesquita</strong><p>Construindo, aprendendo,<br />evoluindo.</p><code>Python · APIs · Automação</code></div></div></div></section>
     <section id="projetos" className="section projects-section"><SectionTitle index="02">Projetos selecionados</SectionTitle><ProjectCard project={projects[0]} /><ProjectCard project={projects[1]} reverse /><article className="coming-soon reveal"><span>03</span><div><small>EM DESENVOLVIMENTO</small><h3>Novos projetos backend e APIs em desenvolvimento.</h3></div><code>{"{ work_in_progress: true }"}</code></article></section>
     <section id="tecnologias" className="section tech-section"><SectionTitle index="03">Tecnologias</SectionTitle><div className="tech-intro"><h2>ferramentas<br />de trabalho<span>.</span></h2><p>Algumas tecnologias que utilizo nos meus projetos.</p></div><div className="tech-grid">{technologyGroups.map((group, index) => <TechnologyGroup key={group.title} group={group} index={index} />)}</div></section>
