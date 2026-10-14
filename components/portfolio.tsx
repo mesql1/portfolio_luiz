@@ -173,6 +173,58 @@ export function Portfolio() {
     return () => { observer.disconnect(); revealObserver.disconnect(); };
   }, []);
 
+  useEffect(() => {
+    const canRunTour = window.matchMedia("(min-width: 901px)").matches;
+    if (!canRunTour || window.location.hash || window.scrollY > 24) return;
+
+    let cancelled = false;
+    let scrollFrame = 0;
+    const cancelTour = () => {
+      cancelled = true;
+      window.clearTimeout(tourTimer);
+      if (scrollFrame) window.cancelAnimationFrame(scrollFrame);
+      removeCancellationListeners();
+    };
+    const removeCancellationListeners = () => {
+      window.removeEventListener("wheel", cancelTour);
+      window.removeEventListener("touchstart", cancelTour);
+      window.removeEventListener("pointerdown", cancelTour);
+      window.removeEventListener("keydown", cancelTour);
+    };
+    const tourTimer = window.setTimeout(() => {
+      if (cancelled) return;
+      const firstProject = document.querySelector<HTMLElement>(".project-card--scroll");
+      if (!firstProject) return;
+      const cardTop = window.scrollY + firstProject.getBoundingClientRect().top;
+      const scrollable = Math.max(firstProject.offsetHeight - window.innerHeight, 0);
+      const startY = window.scrollY;
+      const targetY = cardTop - 110 + scrollable * 0.58;
+      const distance = targetY - startY;
+      const duration = 1800;
+      const startedAt = performance.now();
+      const animateScroll = (now: number) => {
+        if (cancelled) return;
+        const progress = Math.min(1, (now - startedAt) / duration);
+        const eased = 1 - Math.pow(1 - progress, 4);
+        window.scrollTo(0, startY + distance * eased);
+        if (progress < 1) scrollFrame = window.requestAnimationFrame(animateScroll);
+        else removeCancellationListeners();
+      };
+      scrollFrame = window.requestAnimationFrame(animateScroll);
+    }, 3000);
+
+    window.addEventListener("wheel", cancelTour, { passive: true });
+    window.addEventListener("touchstart", cancelTour, { passive: true });
+    window.addEventListener("pointerdown", cancelTour, { passive: true });
+    window.addEventListener("keydown", cancelTour);
+
+    return () => {
+      window.clearTimeout(tourTimer);
+      if (scrollFrame) window.cancelAnimationFrame(scrollFrame);
+      removeCancellationListeners();
+    };
+  }, []);
+
   return <><Navbar active={active} /><main>
     <section id="inicio" className="hero"><div className="orbit orbit--hero" aria-hidden="true" /><div className="hero__eyebrow"><span>PORTFÓLIO / 2026</span><span>BASED IN BRAZIL</span></div><h1><span>backend</span><span>developer<i>.</i></span></h1><div className="hero__bottom"><div><p>Desenvolvo aplicações backend, integrações com APIs e sistemas focados em automação e organização de dados.</p><div className="tag-list"><span>Python</span><span>Django</span><span>APIs</span><span>Automação</span></div></div><div className="hero__actions"><Button href="#projetos">Ver projetos</Button><Button href={profile.github} variant="outline">GitHub</Button></div></div><a className="scroll-cue" href="#projetos" aria-label="Rolar até projetos"><ArrowDown /><span>SCROLL</span></a></section>
     <section id="sobre" className="section about-section"><div className="orbit orbit--about" aria-hidden="true" /><SectionTitle index="01">Sobre mim</SectionTitle><div className="about-grid"><div className="about-copy reveal"><p className="lead">Olá, sou Luiz Mesquita, desenvolvedor com foco em <em>backend.</em></p><p>Atualmente desenvolvo projetos principalmente utilizando Python e venho aprofundando meus conhecimentos em desenvolvimento web, APIs, bancos de dados, automação e arquitetura de software.</p><p>Gosto de transformar problemas em aplicações funcionais, organizadas e fáceis de manter.</p></div><div className="identity-card identity-card--portrait reveal"><img className="identity-photo" src="profile/luiz-mesquita.png" alt="Luiz Mesquita" /><div className="identity-card__portrait-copy"><span>BACKEND DEVELOPER</span><strong>Luiz Mesquita</strong><p>Construindo, aprendendo,<br />evoluindo.</p><code>Python · APIs · Automação</code></div></div></div></section>
@@ -182,4 +234,3 @@ export function Portfolio() {
     <section id="contato" className="section contact-section"><div className="orbit orbit--contact" aria-hidden="true" /><span className="contact-index">05 / CONTATO</span><h2>VAMOS<br /><span>CONVERSAR</span><i>?</i></h2><p>Tem uma oportunidade, projeto ou quer conversar sobre desenvolvimento?</p><div className="social-list"><SocialLink href={profile.github} icon={<Code2 />}>GitHub</SocialLink><SocialLink href={profile.linkedin} icon={<BriefcaseBusiness />}>LinkedIn</SocialLink><SocialLink href={profile.instagram} icon={<Camera />}>Instagram</SocialLink><SocialLink href={profile.email} icon={<Mail />}>E-mail</SocialLink></div></section>
   </main><Footer /></>;
 }
-
