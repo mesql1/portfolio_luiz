@@ -192,12 +192,11 @@ export function Portfolio() {
     };
     const tourTimer = window.setTimeout(() => {
       if (cancelled) return;
-      const firstProject = document.querySelector<HTMLElement>(".project-card--scroll");
-      if (!firstProject) return;
-      const cardTop = window.scrollY + firstProject.getBoundingClientRect().top;
-      const scrollable = Math.max(firstProject.offsetHeight - window.innerHeight, 0);
+      const aboutSection = document.getElementById("sobre");
+      if (!aboutSection) return;
+      const sectionTop = window.scrollY + aboutSection.getBoundingClientRect().top;
       const startY = window.scrollY;
-      const targetY = cardTop - 110 + scrollable * 0.58;
+      const targetY = Math.max(0, sectionTop - 84);
       const distance = targetY - startY;
       const duration = 1800;
       const startedAt = performance.now();
