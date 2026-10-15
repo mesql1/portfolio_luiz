@@ -1,7 +1,7 @@
 "use client";
 
 import { type CSSProperties, useEffect, useRef, useState } from "react";
-import { ArrowDown, ArrowUpRight, BriefcaseBusiness, Camera, ChevronLeft, ChevronRight, Code2, Mail, Menu, X } from "lucide-react";
+import { ArrowDown, ArrowUpRight, BriefcaseBusiness, Camera, ChevronLeft, ChevronRight, Code2, Mail, Menu, MessageCircle, X } from "lucide-react";
 import { profile, projects, technologyGroups } from "@/lib/portfolio-data";
 
 const navItems = [["sobre", "Sobre"], ["projetos", "Projetos"], ["tecnologias", "Tecnologias"], ["contato", "Contato"]] as const;
@@ -229,7 +229,7 @@ export function Portfolio() {
     <section id="projetos" className="section projects-section reveal reveal--section"><SectionTitle index="02">Projetos selecionados</SectionTitle><ProjectCard project={projects[0]} /><ProjectCard project={projects[1]} reverse /><article className="coming-soon reveal"><span>03</span><div><small>EM DESENVOLVIMENTO</small><h3>Novos projetos backend e APIs em desenvolvimento.</h3></div><code>{"{ work_in_progress: true }"}</code></article></section>
     <section id="tecnologias" className="section tech-section reveal reveal--section"><SectionTitle index="03">Tecnologias</SectionTitle><div className="tech-intro"><h2>ferramentas<br />de trabalho<span>.</span></h2><p>Algumas tecnologias que utilizo nos meus projetos.</p></div><div className="tech-grid">{technologyGroups.map((group, index) => <TechnologyGroup key={group.title} group={group} index={index} />)}</div></section>
     <section id="github" className="section github-section reveal reveal--section"><div className="github-code" aria-hidden="true"><span>def build_future():</span><span>&nbsp;&nbsp;learn()</span><span>&nbsp;&nbsp;ship()</span><span>&nbsp;&nbsp;repeat()</span></div><div className="github-copy reveal"><span>04 / OPEN SOURCE</span><h2>CODE<span>.</span></h2><p>Além dos projetos apresentados aqui, mantenho outros estudos, experimentos e projetos disponíveis no GitHub.</p><Button href={profile.github}>Explorar GitHub</Button></div></section>
-    <section id="contato" className="section contact-section reveal reveal--section"><div className="orbit orbit--contact" aria-hidden="true" /><span className="contact-index">05 / CONTATO</span><h2>VAMOS<br /><span>CONVERSAR</span><i>?</i></h2><p>Tem uma oportunidade, projeto ou quer conversar sobre desenvolvimento?</p><div className="social-list"><SocialLink href={profile.github} icon={<Code2 />}>GitHub</SocialLink><SocialLink href={profile.linkedin} icon={<BriefcaseBusiness />}>LinkedIn</SocialLink><SocialLink href={profile.instagram} icon={<Camera />}>Instagram</SocialLink><SocialLink href={profile.email} icon={<Mail />}>E-mail</SocialLink></div></section>
+    <section id="contato" className="section contact-section reveal reveal--section"><div className="orbit orbit--contact" aria-hidden="true" /><span className="contact-index">05 / CONTATO</span><h2>VAMOS<br /><span>CONVERSAR</span><i>?</i></h2><p>Tem uma oportunidade, projeto ou quer conversar sobre desenvolvimento?</p><div className="social-list"><SocialLink href={profile.github} icon={<Code2 />}>GitHub</SocialLink><SocialLink href={profile.linkedin} icon={<BriefcaseBusiness />}>LinkedIn</SocialLink><SocialLink href={profile.instagram} icon={<Camera />}>Instagram</SocialLink><SocialLink href={profile.email} icon={<Mail />}>E-mail</SocialLink><SocialLink href={profile.whatsapp} icon={<MessageCircle />}>WhatsApp</SocialLink></div></section>
   </main><Footer /></>;
 }
 

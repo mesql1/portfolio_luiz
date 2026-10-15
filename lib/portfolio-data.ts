@@ -3,6 +3,7 @@ export const profile = {
   instagram: "https://www.instagram.com/luiz.mesq/",
   linkedin: "https://www.linkedin.com/in/luiz-eduardo-mesquita/",
   email: "mailto:luizmesquitasena@gmail.com",
+  whatsapp: "https://wa.me/5598982078051",
 };
 
 export const projects = [
@@ -33,3 +34,4 @@ export const technologyGroups = [
   { title: "Ferramentas", items: ["Git", "GitHub", "VS Code"] },
   { title: "Outras", items: ["Pytest", "Matplotlib", "Discord API"] },
 ];
+
