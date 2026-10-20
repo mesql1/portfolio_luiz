@@ -49,8 +49,8 @@ export function HeroParticles() {
         particles.push({
           x: Math.random() * width,
           y: Math.random() * height,
-          size: 1 + Math.random() * 2.1,
-          speed: 5 + Math.random() * 15,
+          size: 1.3 + Math.random() * 2.4,
+          speed: 16 + Math.random() * 24,
           drift: (Math.random() - 0.5) * 12,
           phase: Math.random() * Math.PI * 2,
           rotation: Math.random() * Math.PI,
@@ -79,6 +79,12 @@ export function HeroParticles() {
       context.setTransform(Math.min(window.devicePixelRatio || 1, 2), 0, 0, Math.min(window.devicePixelRatio || 1, 2), 0, 0);
     };
 
+    const renderParticles = () => {
+      context.clearRect(0, 0, width, height);
+      for (const particle of particles) drawParticle(particle);
+      context.globalAlpha = 1;
+    };
+
     const draw = (time: number) => {
       if (document.hidden) {
         animationFrame = 0;
@@ -87,7 +93,6 @@ export function HeroParticles() {
 
       const delta = Math.min((time - (lastTime || time)) / 1000, 0.04);
       lastTime = time;
-      context.clearRect(0, 0, width, height);
 
       for (const particle of particles) {
         const influenceX = pointerX < 0 ? 0 : (particle.x - pointerX) * 0.008;
@@ -104,10 +109,9 @@ export function HeroParticles() {
         }
         if (particle.x < -12) particle.x = width + 8;
         if (particle.x > width + 12) particle.x = -8;
-        drawParticle(particle);
       }
 
-      context.globalAlpha = 1;
+      renderParticles();
       animationFrame = window.requestAnimationFrame(draw);
     };
 
@@ -134,6 +138,7 @@ export function HeroParticles() {
     };
 
     resize();
+    renderParticles();
     start();
     window.addEventListener("resize", resize, { passive: true });
     canvas.addEventListener("pointermove", handlePointer, { passive: true });
