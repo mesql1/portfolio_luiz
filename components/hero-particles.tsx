@@ -14,7 +14,7 @@ type Point = {
 
 type Edge = { from: number; to: number };
 
-const pointColors = ["#c9d2e1", "#c9d2e1", "#c9d2e1", "#c9d2e1", "#c9d2e1", "#9eb9ec", "#e4c77c"];
+const pointColor = "#ffffff";
 
 export function HeroParticles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -67,7 +67,7 @@ export function HeroParticles() {
             y: anchorY,
             phase: Math.random() * Math.PI * 2,
             size: 1 + Math.random() * 0.8,
-            color: pointColors[Math.floor(Math.random() * pointColors.length)],
+            color: pointColor,
           });
         }
       }
@@ -99,8 +99,8 @@ export function HeroParticles() {
         const dy = pointerActive ? middleY - pointerY : influenceRadius;
         const distance = Math.hypot(dx, dy);
         const glow = pointerActive ? Math.max(0, 1 - distance / influenceRadius) : 0;
-        context.globalAlpha = 0.045 + glow * 0.3 * pointerEnergy;
-        context.strokeStyle = glow > 0.12 ? "#b9c9e6" : "#aeb7c7";
+        context.globalAlpha = 0.012 + glow * 0.16 * pointerEnergy;
+        context.strokeStyle = "#ffffff";
         context.lineWidth = 0.55 + glow * 0.55;
         context.beginPath();
         context.moveTo(from.x, from.y);
@@ -123,7 +123,7 @@ export function HeroParticles() {
         point.y += (targetY - point.y) * 0.12;
 
         context.globalAlpha = 0.28 + influence * 0.72 * pointerEnergy;
-        context.fillStyle = influence > 0.15 ? "#f1d28a" : point.color;
+        context.fillStyle = point.color;
         context.beginPath();
         context.arc(point.x, point.y, point.size + influence * 1.15 * pointerEnergy, 0, Math.PI * 2);
         context.fill();
