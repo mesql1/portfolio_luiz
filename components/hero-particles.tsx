@@ -122,7 +122,7 @@ export function HeroParticles() {
         point.x += (targetX - point.x) * 0.12;
         point.y += (targetY - point.y) * 0.12;
 
-        context.globalAlpha = 0.28 + influence * 0.72 * pointerEnergy;
+        context.globalAlpha = influence * pointerEnergy * 0.95;
         context.fillStyle = point.color;
         context.beginPath();
         context.arc(point.x, point.y, point.size + influence * 1.15 * pointerEnergy, 0, Math.PI * 2);
