@@ -18,6 +18,7 @@ button,a { -webkit-tap-highlight-color:transparent; }
 .nav-links>a:hover:after,.nav-links>a.active:after { right:0; }
 .nav-github { display:flex; align-items:center; gap:7px; padding-left:24px; border-left:1px solid var(--line); }
 .nav-toggle { display:none; background:none; border:0; color:var(--fg); }
+.hero-particles { position:absolute; inset:0; z-index:1; width:100%; height:100%; pointer-events:none; }
 .hero { position:relative; min-height:100svh; padding:140px clamp(24px,5vw,86px) 64px; display:flex; flex-direction:column; justify-content:space-between; overflow:hidden; border-bottom:1px solid var(--line); }
 .hero::after { content:""; position:absolute; z-index:4; left:0; bottom:0; width:100%; height:1px; background:linear-gradient(90deg,transparent 0,var(--fg) 16%,var(--fg) 84%,transparent 100%); transform:scaleX(0); transform-origin:left center; animation:hero-progress 2.7s .15s cubic-bezier(.22,1,.36,1) both; }
 .hero__eyebrow { position:relative; z-index:2; display:flex; justify-content:space-between; font:11px/1 var(--mono); color:#777; letter-spacing:.12em; opacity:0; animation:hero-meta-in .65s .12s cubic-bezier(.22,1,.36,1) both; }
