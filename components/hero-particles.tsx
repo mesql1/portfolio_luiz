@@ -99,7 +99,7 @@ export function HeroParticles() {
         const dy = pointerActive ? middleY - pointerY : influenceRadius;
         const distance = Math.hypot(dx, dy);
         const glow = pointerActive ? Math.max(0, 1 - distance / influenceRadius) : 0;
-        context.globalAlpha = 0.012 + glow * 0.16 * pointerEnergy;
+        context.globalAlpha = 0;
         context.strokeStyle = "#ffffff";
         context.lineWidth = 0.55 + glow * 0.55;
         context.beginPath();
