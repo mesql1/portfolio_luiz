@@ -17,7 +17,7 @@ export function SectionTitle({ index, children }: { index: string; children: Rea
 
 export function Navbar({ active }: { active: string }) {
   const [open, setOpen] = useState(false);
-  return <header className="nav-shell"><a className="brand" href="#inicio" aria-label="Luiz Mesquita, início"><span>Luiz</span><span>Mesquita</span></a><button className="nav-toggle" aria-label="Abrir menu" aria-expanded={open} onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</button><nav className={open ? "nav-links is-open" : "nav-links"} aria-label="Navegação principal">{navItems.map(([id, label]) => <a key={id} className={active === id ? "active" : ""} href={`#${id}`} onClick={() => setOpen(false)}>{label}</a>)}<a className="nav-github" href={profile.github} target="_blank" rel="noreferrer"><Code2 size={15} /> GitHub</a></nav></header>;
+  return <header className="nav-shell"><a className="brand" href="#inicio" aria-label="Luiz Mesquita, início"><span>Luiz</span><span>Mesquita</span></a><nav className={open ? "nav-links is-open" : "nav-links"} aria-label="Navegação principal">{navItems.map(([id, label]) => <a key={id} className={active === id ? "active" : ""} href={`#${id}`} aria-current={active === id ? "location" : undefined} onClick={() => setOpen(false)}>{label}</a>)}</nav><a className="nav-cta" href={profile.whatsapp} aria-label="Conversar pelo WhatsApp" target="_blank" rel="noreferrer"><MessageCircle size={16} aria-hidden="true" /><span>Vamos conversar</span><ArrowUpRight size={15} aria-hidden="true" /></a><button className="nav-toggle" aria-label={open ? "Fechar menu" : "Abrir menu"} aria-expanded={open} onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</button></header>;
 }
 
 const projectSlides = {
