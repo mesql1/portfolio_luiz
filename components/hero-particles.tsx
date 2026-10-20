@@ -2,20 +2,19 @@
 
 import { useEffect, useRef } from "react";
 
-type Particle = {
+type Point = {
+  anchorX: number;
+  anchorY: number;
   x: number;
   y: number;
-  size: number;
-  speed: number;
-  drift: number;
   phase: number;
-  rotation: number;
-  spin: number;
-  shape: "dot" | "dash" | "square";
+  size: number;
   color: string;
 };
 
-const colors = ["#e8c56a", "#d98b73", "#91a8cf", "#93ae91", "#c5a0c5"];
+type Edge = { from: number; to: number };
+
+const pointColors = ["#c9d2e1", "#c9d2e1", "#c9d2e1", "#c9d2e1", "#c9d2e1", "#9eb9ec", "#e4c77c"];
 
 export function HeroParticles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -23,65 +22,124 @@ export function HeroParticles() {
   useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas?.getContext("2d", { alpha: true });
-    if (!canvas || !context) return;
+    const hero = canvas?.parentElement;
+    if (!canvas || !context || !hero) return;
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const particles: Particle[] = [];
+    const points: Point[] = [];
+    const edges: Edge[] = [];
     let animationFrame = 0;
     let width = 0;
     let height = 0;
+    let pixelRatio = 1;
     let lastTime = 0;
+    let elapsed = 0;
     let pointerX = -1;
     let pointerY = -1;
+    let pointerActive = false;
+    let pointerEnergy = 0;
+    let previousPointerX = -1;
+    let previousPointerY = -1;
 
     const resize = () => {
       const bounds = canvas.getBoundingClientRect();
-      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
       width = bounds.width;
       height = bounds.height;
       canvas.width = Math.round(width * pixelRatio);
       canvas.height = Math.round(height * pixelRatio);
       context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
-      const count = Math.min(96, Math.max(34, Math.round((width * height) / 18000)));
-      particles.length = 0;
-      for (let index = 0; index < count; index += 1) {
-        particles.push({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          size: 1.3 + Math.random() * 2.4,
-          speed: 16 + Math.random() * 24,
-          drift: (Math.random() - 0.5) * 12,
-          phase: Math.random() * Math.PI * 2,
-          rotation: Math.random() * Math.PI,
-          spin: (Math.random() - 0.5) * 0.7,
-          shape: (["dot", "dash", "square"] as const)[Math.floor(Math.random() * 3)],
-          color: colors[Math.floor(Math.random() * colors.length)],
-        });
+      const spacing = Math.max(30, Math.min(42, width / 29));
+      const columns = Math.ceil(width / spacing) + 1;
+      const rows = Math.ceil(height / spacing) + 1;
+      points.length = 0;
+      edges.length = 0;
+
+      for (let row = 0; row <= rows; row += 1) {
+        for (let column = 0; column <= columns; column += 1) {
+          const anchorX = column * spacing - spacing / 2 + (Math.random() - 0.5) * 9;
+          const anchorY = row * spacing - spacing / 2 + (Math.random() - 0.5) * 9;
+          points.push({
+            anchorX,
+            anchorY,
+            x: anchorX,
+            y: anchorY,
+            phase: Math.random() * Math.PI * 2,
+            size: 1 + Math.random() * 0.8,
+            color: pointColors[Math.floor(Math.random() * pointColors.length)],
+          });
+        }
+      }
+
+      const indexAt = (row: number, column: number) => row * (columns + 1) + column;
+      for (let row = 0; row <= rows; row += 1) {
+        for (let column = 0; column <= columns; column += 1) {
+          const from = indexAt(row, column);
+          if (column < columns) edges.push({ from, to: indexAt(row, column + 1) });
+          if (row < rows) edges.push({ from, to: indexAt(row + 1, column) });
+          if (row < rows && column < columns && (row + column) % 2 === 0) {
+            edges.push({ from, to: indexAt(row + 1, column + 1) });
+          }
+        }
       }
     };
 
-    const drawParticle = (particle: Particle) => {
-      const pulse = 0.45 + (Math.sin(particle.phase) + 1) * 0.2;
-      context.globalAlpha = pulse;
-      context.fillStyle = particle.color;
-      context.translate(particle.x, particle.y);
-      context.rotate(particle.rotation);
-      if (particle.shape === "dash") {
-        context.fillRect(-particle.size * 2.1, -particle.size * 0.45, particle.size * 4.2, particle.size * 0.9);
-      } else if (particle.shape === "square") {
-        context.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size);
-      } else {
+    const render = () => {
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      context.clearRect(0, 0, width, height);
+
+      const influenceRadius = Math.min(190, Math.max(125, width * 0.14));
+      for (const edge of edges) {
+        const from = points[edge.from];
+        const to = points[edge.to];
+        const middleX = (from.x + to.x) / 2;
+        const middleY = (from.y + to.y) / 2;
+        const dx = pointerActive ? middleX - pointerX : influenceRadius;
+        const dy = pointerActive ? middleY - pointerY : influenceRadius;
+        const distance = Math.hypot(dx, dy);
+        const glow = pointerActive ? Math.max(0, 1 - distance / influenceRadius) : 0;
+        context.globalAlpha = 0.045 + glow * 0.3 * pointerEnergy;
+        context.strokeStyle = glow > 0.12 ? "#b9c9e6" : "#aeb7c7";
+        context.lineWidth = 0.55 + glow * 0.55;
         context.beginPath();
-        context.arc(0, 0, particle.size, 0, Math.PI * 2);
+        context.moveTo(from.x, from.y);
+        context.lineTo(to.x, to.y);
+        context.stroke();
+      }
+
+      for (const point of points) {
+        const dx = pointerActive ? point.anchorX - pointerX : 0;
+        const dy = pointerActive ? point.anchorY - pointerY : 0;
+        const distance = Math.hypot(dx, dy);
+        const influence = pointerActive ? Math.max(0, 1 - distance / influenceRadius) : 0;
+        const push = influence * influence * 38 * pointerEnergy;
+        const angle = Math.atan2(dy, dx);
+        const idleX = Math.sin(elapsed * 0.8 + point.phase) * 1.8;
+        const idleY = Math.cos(elapsed * 0.65 + point.phase) * 1.8;
+        const targetX = point.anchorX + Math.cos(angle) * push + idleX;
+        const targetY = point.anchorY + Math.sin(angle) * push + idleY;
+        point.x += (targetX - point.x) * 0.12;
+        point.y += (targetY - point.y) * 0.12;
+
+        context.globalAlpha = 0.28 + influence * 0.72 * pointerEnergy;
+        context.fillStyle = influence > 0.15 ? "#f1d28a" : point.color;
+        context.beginPath();
+        context.arc(point.x, point.y, point.size + influence * 1.15 * pointerEnergy, 0, Math.PI * 2);
         context.fill();
       }
-      context.setTransform(Math.min(window.devicePixelRatio || 1, 2), 0, 0, Math.min(window.devicePixelRatio || 1, 2), 0, 0);
-    };
 
-    const renderParticles = () => {
-      context.clearRect(0, 0, width, height);
-      for (const particle of particles) drawParticle(particle);
+      if (pointerActive && pointerEnergy > 0.01) {
+        const halo = context.createRadialGradient(pointerX, pointerY, 0, pointerX, pointerY, influenceRadius * 0.68);
+        halo.addColorStop(0, `rgba(187, 205, 239, ${0.1 * pointerEnergy})`);
+        halo.addColorStop(1, "rgba(187, 205, 239, 0)");
+        context.globalAlpha = 1;
+        context.fillStyle = halo;
+        context.beginPath();
+        context.arc(pointerX, pointerY, influenceRadius * 0.68, 0, Math.PI * 2);
+        context.fill();
+      }
+
       context.globalAlpha = 1;
     };
 
@@ -93,25 +151,9 @@ export function HeroParticles() {
 
       const delta = Math.min((time - (lastTime || time)) / 1000, 0.04);
       lastTime = time;
-
-      for (const particle of particles) {
-        const influenceX = pointerX < 0 ? 0 : (particle.x - pointerX) * 0.008;
-        const influenceY = pointerY < 0 ? 0 : (particle.y - pointerY) * 0.008;
-        particle.y -= particle.speed * delta;
-        particle.x += (particle.drift + influenceX) * delta;
-        particle.y += influenceY * delta;
-        particle.rotation += particle.spin * delta;
-        particle.phase += delta * 1.5;
-
-        if (particle.y < -12) {
-          particle.y = height + 8;
-          particle.x = Math.random() * width;
-        }
-        if (particle.x < -12) particle.x = width + 8;
-        if (particle.x > width + 12) particle.x = -8;
-      }
-
-      renderParticles();
+      elapsed += delta;
+      pointerEnergy += ((pointerActive ? 1 : 0) - pointerEnergy) * Math.min(1, delta * 7);
+      render();
       animationFrame = window.requestAnimationFrame(draw);
     };
 
@@ -125,32 +167,49 @@ export function HeroParticles() {
       window.cancelAnimationFrame(animationFrame);
       animationFrame = 0;
     };
-    const handleMotionPreference = () => reducedMotion.matches ? stop() : start();
+    const handleMotionPreference = () => {
+      if (reducedMotion.matches) {
+        stop();
+        render();
+      } else {
+        start();
+      }
+    };
     const handleVisibility = () => document.hidden ? stop() : start();
-    const handlePointer = (event: PointerEvent) => {
+    const handlePointerMove = (event: PointerEvent) => {
       const bounds = canvas.getBoundingClientRect();
       pointerX = event.clientX - bounds.left;
       pointerY = event.clientY - bounds.top;
+      if (previousPointerX >= 0) {
+        const distance = Math.hypot(pointerX - previousPointerX, pointerY - previousPointerY);
+        pointerEnergy = Math.min(1, pointerEnergy + distance * 0.008);
+      }
+      previousPointerX = pointerX;
+      previousPointerY = pointerY;
+      pointerActive = true;
+      if (reducedMotion.matches) render();
     };
-    const clearPointer = () => {
-      pointerX = -1;
-      pointerY = -1;
+    const handlePointerLeave = () => {
+      pointerActive = false;
+      previousPointerX = -1;
+      previousPointerY = -1;
+      if (reducedMotion.matches) render();
     };
 
     resize();
-    renderParticles();
+    render();
     start();
     window.addEventListener("resize", resize, { passive: true });
-    canvas.addEventListener("pointermove", handlePointer, { passive: true });
-    canvas.addEventListener("pointerleave", clearPointer, { passive: true });
+    hero.addEventListener("pointermove", handlePointerMove, { passive: true });
+    hero.addEventListener("pointerleave", handlePointerLeave, { passive: true });
     document.addEventListener("visibilitychange", handleVisibility);
     reducedMotion.addEventListener("change", handleMotionPreference);
 
     return () => {
       stop();
       window.removeEventListener("resize", resize);
-      canvas.removeEventListener("pointermove", handlePointer);
-      canvas.removeEventListener("pointerleave", clearPointer);
+      hero.removeEventListener("pointermove", handlePointerMove);
+      hero.removeEventListener("pointerleave", handlePointerLeave);
       document.removeEventListener("visibilitychange", handleVisibility);
       reducedMotion.removeEventListener("change", handleMotionPreference);
     };
