@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowUpRight, BriefcaseBusiness, Camera, ChevronLeft, ChevronRight, Code2, Mail, MessageCircle } from "lucide-react";
 import { profile, projects, technologyGroups } from "@/lib/portfolio-data";
 import { HeroParticles } from "@/components/hero-particles";
@@ -16,7 +16,30 @@ export function SectionTitle({ index, children }: { index: string; children: Rea
 }
 
 export function Navbar({ active }: { active: string }) {
-  return <header className="nav-shell"><nav className="nav-links" aria-label="Navegação principal">{navItems.map(([id, label]) => <a key={id} className={active === id ? "active" : ""} href={`#${id}`} aria-current={active === id ? "location" : undefined}>{label}</a>)}</nav></header>;
+  const navRef = useRef<HTMLElement>(null);
+  useLayoutEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const selected = nav.querySelector<HTMLElement>("a.active") ?? nav.querySelector<HTMLElement>("a");
+    if (!selected) return;
+    const updateIndicator = () => {
+      const navRect = nav.getBoundingClientRect();
+      const selectedRect = selected.getBoundingClientRect();
+      nav.style.setProperty("--nav-indicator-x", `${selectedRect.left - navRect.left - nav.clientLeft}px`);
+      nav.style.setProperty("--nav-indicator-width", `${selectedRect.width}px`);
+      nav.classList.add("nav-links--ready");
+    };
+    updateIndicator();
+    const resizeObserver = new ResizeObserver(updateIndicator);
+    resizeObserver.observe(nav);
+    resizeObserver.observe(selected);
+    window.addEventListener("resize", updateIndicator);
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateIndicator);
+    };
+  }, [active]);
+  return <header className="nav-shell"><nav ref={navRef} className="nav-links" aria-label="Navegação principal">{navItems.map(([id, label]) => <a key={id} className={active === id ? "active" : ""} href={`#${id}`} aria-current={active === id ? "location" : undefined}>{label}</a>)}</nav></header>;
 }
 
 const projectSlides = {
