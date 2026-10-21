@@ -20,8 +20,11 @@ export function Navbar({ active }: { active: string }) {
   useLayoutEffect(() => {
     const nav = navRef.current;
     if (!nav) return;
-    const selected = nav.querySelector<HTMLElement>("a.active") ?? nav.querySelector<HTMLElement>("a");
-    if (!selected) return;
+    const selected = nav.querySelector<HTMLElement>("a.active");
+    if (!selected) {
+      nav.classList.remove("nav-links--ready");
+      return;
+    }
     const updateIndicator = () => {
       const navRect = nav.getBoundingClientRect();
       const selectedRect = selected.getBoundingClientRect();
