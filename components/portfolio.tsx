@@ -131,16 +131,33 @@ function ProjectScrollGallery({ kind, name, current, onSelect }: { kind: "discor
 const caseStudyLabels = {
   problem: "Problema",
   solution: "Solução",
-  contribution: "Minha contribuição",
+  contribution: "Contribuição",
   architecture: "Arquitetura",
   tests: "Testes",
   challenge: "Desafio",
   result: "Resultado",
 } as const;
 
-function ProjectEvidence({ details }: { details: (typeof projects)[number]["caseStudy"] }) {
+function ProjectEvidence({ details, projectId }: { details: (typeof projects)[number]["caseStudy"]; projectId: string }) {
   const entries = Object.entries(details) as [keyof typeof caseStudyLabels, string][];
-  return <dl className="project-evidence">{entries.map(([key, value]) => <div key={key}><dt>{caseStudyLabels[key]}</dt><dd>{value}</dd></div>)}</dl>;
+  const [activeKey, setActiveKey] = useState<keyof typeof caseStudyLabels>("problem");
+  const activeIndex = entries.findIndex(([key]) => key === activeKey);
+  const selectRelative = (delta: number) => {
+    const nextIndex = (activeIndex + delta + entries.length) % entries.length;
+    setActiveKey(entries[nextIndex][0]);
+  };
+  return <div className="project-evidence">
+    <div className="project-evidence__tabs" role="tablist" aria-label="Detalhes técnicos do projeto" onKeyDown={event => {
+      if (event.key === "ArrowRight") { event.preventDefault(); selectRelative(1); }
+      if (event.key === "ArrowLeft") { event.preventDefault(); selectRelative(-1); }
+    }}>
+      {entries.map(([key]) => <button key={key} id={`${projectId}-tab-${key}`} type="button" role="tab" aria-selected={activeKey === key} aria-controls={`${projectId}-panel`} tabIndex={activeKey === key ? 0 : -1} onClick={() => setActiveKey(key)}>{caseStudyLabels[key]}</button>)}
+    </div>
+    <div className="project-evidence__panel" id={`${projectId}-panel`} role="tabpanel" aria-labelledby={`${projectId}-tab-${activeKey}`} tabIndex={0}>
+      <span>{caseStudyLabels[activeKey]}</span>
+      <p>{details[activeKey]}</p>
+    </div>
+  </div>;
 }
 
 export function ProjectCard({ project, reverse = false }: { project: (typeof projects)[number]; reverse?: boolean }) {
@@ -184,7 +201,7 @@ export function ProjectCard({ project, reverse = false }: { project: (typeof pro
     window.scrollTo({ top: cardTop - 110 + scrollable * progress, behavior: "smooth" });
   };
 
-  return <article ref={cardRef} className={`project-card project-card--scroll reveal ${reverse ? "project-card--reverse" : ""}`} style={{ "--slide-count": slideCount } as CSSProperties}><div className="project-card__sticky"><div className="project-card__cinematic" aria-hidden="true"><span>{project.name}</span><i /><small>{String(current + 1).padStart(2, "0")} / {String(slideCount).padStart(2, "0")}</small></div><div className="project-card__copy"><div className="project-number">{project.number} / SELECTED</div><h3>{project.name}</h3><p>{project.description}</p><div className="tag-list">{project.technologies.map(item => <span key={item}>{item}</span>)}</div><ProjectEvidence details={project.caseStudy} /><Button href={project.href} variant="outline">Ver no GitHub</Button></div><ProjectScrollGallery kind={project.visual} name={project.name} current={current} onSelect={scrollToSlide} /><ProjectCarousel kind={project.visual} name={project.name} /></div></article>;
+  return <article ref={cardRef} className={`project-card project-card--scroll reveal ${reverse ? "project-card--reverse" : ""}`} style={{ "--slide-count": slideCount } as CSSProperties}><div className="project-card__sticky"><div className="project-card__cinematic" aria-hidden="true"><span>{project.name}</span><i /><small>{String(current + 1).padStart(2, "0")} / {String(slideCount).padStart(2, "0")}</small></div><div className="project-card__copy"><div className="project-number">{project.number} / SELECTED</div><h3>{project.name}</h3><p>{project.description}</p><div className="tag-list">{project.technologies.map(item => <span key={item}>{item}</span>)}</div><ProjectEvidence projectId={`project-${project.number}`} details={project.caseStudy} /><Button href={project.href} variant="outline">Ver no GitHub</Button></div><ProjectScrollGallery kind={project.visual} name={project.name} current={current} onSelect={scrollToSlide} /><ProjectCarousel kind={project.visual} name={project.name} /></div></article>;
 }
 
 export function TechnologyGroup({ group, index }: { group: (typeof technologyGroups)[number]; index: number }) {
