@@ -52,19 +52,19 @@ const projectSlides = {
 
 const projectScreenshots = {
   discord: [
-    "projects/jobbot/busca-comando.png",
-    "projects/jobbot/busca-automatica.png",
+    "projects/jobbot/busca-comando.webp",
+    "projects/jobbot/busca-automatica.webp",
   ],
   finance: [
-    "projects/finance/transacoes.png",
-    "projects/finance/dashboard.png",
-    "projects/finance/contas.png",
+    "projects/finance/transacoes.webp",
+    "projects/finance/dashboard.webp",
+    "projects/finance/contas.webp",
   ],
 } as const;
 
 function ProjectVisual({ kind, name, slide }: { kind: "discord" | "finance"; name: string; slide: number }) {
   const label = projectSlides[kind][slide];
-  return <div className={`project-visual project-visual--${kind} project-visual--screenshot`}><img className="project-screenshot" src={projectScreenshots[kind][slide]} alt={`Tela de ${label} do ${name}`} /></div>;
+  return <div className={`project-visual project-visual--${kind} project-visual--screenshot`}><img className="project-screenshot" src={projectScreenshots[kind][slide]} alt={`Tela de ${label} do ${name}`} loading="lazy" decoding="async" fetchPriority="low" /></div>;
 }
 
 function ProjectCarousel({ kind, name }: { kind: "discord" | "finance"; name: string }) {
@@ -128,6 +128,21 @@ function ProjectScrollGallery({ kind, name, current, onSelect }: { kind: "discor
   </figure>;
 }
 
+const caseStudyLabels = {
+  problem: "Problema",
+  solution: "Solução",
+  contribution: "Minha contribuição",
+  architecture: "Arquitetura",
+  tests: "Testes",
+  challenge: "Desafio",
+  result: "Resultado",
+} as const;
+
+function ProjectEvidence({ details }: { details: (typeof projects)[number]["caseStudy"] }) {
+  const entries = Object.entries(details) as [keyof typeof caseStudyLabels, string][];
+  return <dl className="project-evidence">{entries.map(([key, value]) => <div key={key}><dt>{caseStudyLabels[key]}</dt><dd>{value}</dd></div>)}</dl>;
+}
+
 export function ProjectCard({ project, reverse = false }: { project: (typeof projects)[number]; reverse?: boolean }) {
   const cardRef = useRef<HTMLElement>(null);
   const slideCount = projectSlides[project.visual].length;
@@ -169,7 +184,7 @@ export function ProjectCard({ project, reverse = false }: { project: (typeof pro
     window.scrollTo({ top: cardTop - 110 + scrollable * progress, behavior: "smooth" });
   };
 
-  return <article ref={cardRef} className={`project-card project-card--scroll reveal ${reverse ? "project-card--reverse" : ""}`} style={{ "--slide-count": slideCount } as CSSProperties}><div className="project-card__sticky"><div className="project-card__cinematic" aria-hidden="true"><span>{project.name}</span><i /><small>{String(current + 1).padStart(2, "0")} / {String(slideCount).padStart(2, "0")}</small></div><div className="project-card__copy"><div className="project-number">{project.number} / SELECTED</div><h3>{project.name}</h3><p>{project.description}</p><div className="tag-list">{project.technologies.map(item => <span key={item}>{item}</span>)}</div><ul className="project-highlights">{project.highlights.map(item => <li key={item}>{item}</li>)}</ul><Button href={project.href} variant="outline">Ver no GitHub</Button></div><ProjectScrollGallery kind={project.visual} name={project.name} current={current} onSelect={scrollToSlide} /><ProjectCarousel kind={project.visual} name={project.name} /></div></article>;
+  return <article ref={cardRef} className={`project-card project-card--scroll reveal ${reverse ? "project-card--reverse" : ""}`} style={{ "--slide-count": slideCount } as CSSProperties}><div className="project-card__sticky"><div className="project-card__cinematic" aria-hidden="true"><span>{project.name}</span><i /><small>{String(current + 1).padStart(2, "0")} / {String(slideCount).padStart(2, "0")}</small></div><div className="project-card__copy"><div className="project-number">{project.number} / SELECTED</div><h3>{project.name}</h3><p>{project.description}</p><div className="tag-list">{project.technologies.map(item => <span key={item}>{item}</span>)}</div><ProjectEvidence details={project.caseStudy} /><Button href={project.href} variant="outline">Ver no GitHub</Button></div><ProjectScrollGallery kind={project.visual} name={project.name} current={current} onSelect={scrollToSlide} /><ProjectCarousel kind={project.visual} name={project.name} /></div></article>;
 }
 
 export function TechnologyGroup({ group, index }: { group: (typeof technologyGroups)[number]; index: number }) {
@@ -189,13 +204,65 @@ export function Footer() {
 export function Portfolio() {
   const [active, setActive] = useState("inicio");
   useEffect(() => {
-    const sections = document.querySelectorAll<HTMLElement>("section[id]");
-    const observer = new IntersectionObserver(entries => entries.forEach(entry => entry.isIntersecting && setActive(entry.target.id)), { rootMargin: "-35% 0px -55%" });
-    sections.forEach(section => observer.observe(section));
-    const reveals = document.querySelectorAll(".reveal");
-    const revealObserver = new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add("is-visible"); }), { threshold: 0.12 });
-    reveals.forEach(item => revealObserver.observe(item));
-    return () => { observer.disconnect(); revealObserver.disconnect(); };
+    const sections = Array.from(document.querySelectorAll<HTMLElement>("section[id]"));
+    const reveals = Array.from(document.querySelectorAll<HTMLElement>(".reveal"));
+
+    if (!("IntersectionObserver" in window)) {
+      reveals.forEach(item => item.classList.add("is-visible"));
+      return;
+    }
+
+    const sectionObserver = new IntersectionObserver(
+      entries => entries.forEach(entry => entry.isIntersecting && setActive(entry.target.id)),
+      { rootMargin: "-20% 0px -60% 0px", threshold: 0 },
+    );
+    sections.forEach(section => sectionObserver.observe(section));
+
+    const show = (item: Element) => {
+      item.classList.remove("reveal--pending");
+      item.classList.add("is-visible");
+    };
+    reveals.forEach(item => {
+      const rect = item.getBoundingClientRect();
+      if (rect.top <= window.innerHeight * .98 && rect.bottom >= 0) show(item);
+      else item.classList.add("reveal--pending");
+    });
+
+    const revealObserver = new IntersectionObserver(
+      entries => entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        show(entry.target);
+        revealObserver.unobserve(entry.target);
+      }),
+      { threshold: .01, rootMargin: "0px 0px -2% 0px" },
+    );
+    reveals.forEach(item => {
+      if (!item.classList.contains("is-visible")) revealObserver.observe(item);
+    });
+
+    let fallbackFrame = 0;
+    const revealVisibleFallback = () => {
+      fallbackFrame = 0;
+      reveals.forEach(item => {
+        if (!item.classList.contains("reveal--pending")) return;
+        const rect = item.getBoundingClientRect();
+        if (rect.top <= window.innerHeight * .98 && rect.bottom >= 0) show(item);
+      });
+    };
+    const scheduleFallback = () => {
+      if (!fallbackFrame) fallbackFrame = window.requestAnimationFrame(revealVisibleFallback);
+    };
+    window.addEventListener("scroll", scheduleFallback, { passive: true });
+    window.addEventListener("resize", scheduleFallback);
+    scheduleFallback();
+
+    return () => {
+      sectionObserver.disconnect();
+      revealObserver.disconnect();
+      window.removeEventListener("scroll", scheduleFallback);
+      window.removeEventListener("resize", scheduleFallback);
+      if (fallbackFrame) window.cancelAnimationFrame(fallbackFrame);
+    };
   }, []);
 
   useEffect(() => {
@@ -251,7 +318,7 @@ export function Portfolio() {
 
   return <><Navbar active={active} /><main>
     <section id="inicio" className="hero"><HeroParticles /><div className="orbit orbit--hero" aria-hidden="true" /><div className="hero__eyebrow"><span>PORTFÓLIO / 2026</span><span>BASED IN BRAZIL</span></div><h1><span>backend</span><span>developer<i>.</i></span></h1><div className="hero__bottom"><div><p>Desenvolvo aplicações backend, integrações com APIs e sistemas focados em automação e organização de dados.</p><div className="tag-list"><span>Python</span><span>Django</span><span>APIs</span><span>Automação</span></div></div><div className="hero__actions"><Button href="#projetos">Ver projetos</Button><Button href={profile.github} variant="outline">GitHub</Button></div></div><a className="scroll-cue" href="#projetos" aria-label="Rolar até projetos"><ArrowDown /><span>SCROLL</span></a></section>
-    <section id="sobre" className="section about-section reveal reveal--section"><div className="orbit orbit--about" aria-hidden="true" /><SectionTitle index="01">Sobre mim</SectionTitle><div className="about-grid"><div className="about-copy reveal"><p className="lead">Olá, sou Luiz Mesquita, desenvolvedor com foco em <em>backend.</em></p><p>Atualmente desenvolvo projetos principalmente utilizando Python e venho aprofundando meus conhecimentos em desenvolvimento web, APIs, bancos de dados, automação e arquitetura de software.</p><p>Gosto de transformar problemas em aplicações funcionais, organizadas e fáceis de manter.</p></div><div className="identity-card identity-card--portrait reveal"><img className="identity-photo" src="profile/luiz-mesquita.png" alt="Luiz Mesquita" /><div className="identity-card__portrait-copy"><span>BACKEND DEVELOPER</span><strong>Luiz Mesquita</strong><p>Construindo, aprendendo,<br />evoluindo.</p><code>Python · APIs · Automação</code></div></div></div></section>
+    <section id="sobre" className="section about-section reveal reveal--section"><div className="orbit orbit--about" aria-hidden="true" /><SectionTitle index="01">Sobre mim</SectionTitle><div className="about-grid"><div className="about-copy reveal"><p className="lead">Olá, sou Luiz Mesquita, desenvolvedor com foco em <em>backend.</em></p><p>Atualmente desenvolvo projetos principalmente utilizando Python e venho aprofundando meus conhecimentos em desenvolvimento web, APIs, bancos de dados, automação e arquitetura de software.</p><p>Gosto de transformar problemas em aplicações funcionais, organizadas e fáceis de manter.</p></div><div className="identity-card identity-card--portrait reveal"><img className="identity-photo" src="profile/luiz-mesquita.png" alt="Luiz Mesquita" loading="lazy" decoding="async" /><div className="identity-card__portrait-copy"><span>BACKEND DEVELOPER</span><strong>Luiz Mesquita</strong><p>Construindo, aprendendo,<br />evoluindo.</p><code>Python · APIs · Automação</code></div></div></div></section>
     <section id="projetos" className="section projects-section reveal reveal--section"><SectionTitle index="02">Projetos selecionados</SectionTitle><ProjectCard project={projects[0]} /><ProjectCard project={projects[1]} reverse /><article className="coming-soon reveal"><span>03</span><div><small>EM DESENVOLVIMENTO</small><h3>Novos projetos backend e APIs em desenvolvimento.</h3></div><code>{"{ work_in_progress: true }"}</code></article></section>
     <section id="tecnologias" className="section tech-section reveal reveal--section"><SectionTitle index="03">Tecnologias</SectionTitle><div className="tech-intro"><h2>ferramentas<br />de trabalho<span>.</span></h2><p>Algumas tecnologias que utilizo nos meus projetos.</p></div><div className="tech-grid">{technologyGroups.map((group, index) => <TechnologyGroup key={group.title} group={group} index={index} />)}</div></section>
     <section id="github" className="section github-section reveal reveal--section"><div className="github-code" role="img" aria-label="def build_future(): learn(), ship(), repeat()"><span className="github-code__signature">def build_future():</span><div className="github-code__wheel" aria-hidden="true"><div className="github-code__wheel-track"><span>&nbsp;&nbsp;repeat()</span><span>&nbsp;&nbsp;learn()</span><span>&nbsp;&nbsp;ship()</span><span>&nbsp;&nbsp;repeat()</span><span>&nbsp;&nbsp;learn()</span><span>&nbsp;&nbsp;ship()</span></div></div></div><div className="github-copy reveal"><span>04 / OPEN SOURCE</span><h2>CODE<span>.</span></h2><p>Além dos projetos apresentados aqui, mantenho outros estudos, experimentos e projetos disponíveis no GitHub.</p><Button href={profile.github}>Explorar GitHub</Button></div></section>
