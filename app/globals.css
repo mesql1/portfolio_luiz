@@ -40,9 +40,12 @@ button,a { -webkit-tap-highlight-color:transparent; }
 .orbit { position:absolute; border:1px solid rgba(255,255,255,.095); border-radius:50%; pointer-events:none; }
 .orbit--hero { width:min(55vw,850px); aspect-ratio:1; right:-17vw; top:2vh; opacity:0; animation:hero-orbit-in 1.8s .25s cubic-bezier(.22,1,.36,1) both,hero-orbit-drift 9s 2.05s ease-in-out infinite; }
 .section { position:relative; padding:clamp(72px,6.5vw,112px) clamp(24px,5vw,86px); border-bottom:1px solid var(--line); overflow:hidden; }
-.section-title { display:flex; align-items:center; gap:18px; margin-bottom:clamp(60px,8vw,110px); font:11px/1 var(--mono); color:#777; text-transform:uppercase; letter-spacing:.08em; }
+.section-title { position:relative; top:-6px; display:flex; align-items:center; gap:18px; margin-bottom:clamp(60px,8vw,110px); font:11px/1 var(--mono); color:#777; text-transform:uppercase; letter-spacing:.08em; }
+.section-title>span:first-child,.section-title h2 { position:relative; z-index:1; background:var(--bg); box-shadow:0 0 0 7px var(--bg); }
 .section-title h2 { margin:0; font:500 12px/1 var(--mono); color:#d0d0d0; }
 .section-title__line { height:1px; flex:1; background:var(--line); }
+.about-section,.projects-section,.tech-section { padding-top:0; }
+.about-section,.tech-section { overflow:clip; overflow-clip-margin:8px; }
 .projects-section { overflow:visible; }
 .project-card { position:relative; --project-progress:0; --project-copy-y:14px; --project-title-shift:0vw; --project-line-x:0%; --project-mask-y:3.5%; --project-mask-x:2.5%; --project-scale:.94; }
 .project-card--scroll { height:calc(var(--slide-count) * 72vh + 36vh); padding:0; }
