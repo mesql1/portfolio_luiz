@@ -50,7 +50,7 @@ button,a { -webkit-tap-highlight-color:transparent; }
 .project-card { position:relative; --project-progress:0; --project-copy-y:14px; --project-title-shift:0vw; --project-line-x:0%; --project-mask-y:3.5%; --project-mask-x:2.5%; --project-scale:.94; }
 .project-card--scroll { height:calc(var(--slide-count) * 72vh + 36vh); padding:0; }
 .project-card__sticky { position:sticky; isolation:isolate; top:104px; min-height:calc(100vh - 128px); display:grid; grid-template-columns:minmax(300px,.8fr) minmax(520px,1.35fr); gap:clamp(34px,6vw,100px); align-items:center; padding-bottom:24px; overflow:hidden; }
-.project-card__copy { position:relative; z-index:3; transform:translate3d(0,var(--project-copy-y),0); }
+.project-card__copy { position:relative; z-index:3; min-width:0; transform:translate3d(0,var(--project-copy-y),0); }
 .project-card--reverse .project-card__copy { order:2; }
 .project-card__cinematic { position:absolute; z-index:0; inset:0; overflow:hidden; pointer-events:none; }
 .project-card__cinematic>span { position:absolute; top:50%; left:-3vw; max-width:none; color:transparent; opacity:.09; font:700 clamp(6rem,13vw,13rem)/.8 var(--mono); letter-spacing:-.1em; white-space:nowrap; -webkit-text-stroke:1px #aaa; transform:translate3d(var(--project-title-shift),-50%,0); }
@@ -66,7 +66,7 @@ button,a { -webkit-tap-highlight-color:transparent; }
 .project-card li:before { content:"+"; margin-right:12px; font-family:var(--mono); color:#686868; }
 .project-card .button { margin-top:4px; }
 .project-evidence { margin:26px 0 20px; }
-.project-evidence__tabs { position:relative; display:flex; flex-wrap:nowrap; gap:0; margin-bottom:14px; border-block:1px solid #2d2d2d; overflow-x:auto; scrollbar-width:none; }
+.project-evidence__tabs { position:relative; width:100%; max-width:100%; min-width:0; display:flex; flex-wrap:nowrap; gap:0; margin-bottom:14px; border-block:1px solid #2d2d2d; overflow-x:auto; scrollbar-width:none; }
 .project-evidence__tabs::-webkit-scrollbar { display:none; }
 .project-evidence__tabs button { position:relative; flex:1 0 auto; min-height:46px; padding:0 13px; border:0; border-left:1px solid rgba(255,255,255,.08); border-radius:0; background:transparent; color:#696969; cursor:pointer; white-space:nowrap; font:500 8px/1 var(--mono); letter-spacing:.06em; text-transform:uppercase; transition:background .28s,color .28s,text-shadow .28s; }
 .project-evidence__tabs button:first-child { border-left:0; }
