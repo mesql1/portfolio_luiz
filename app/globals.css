@@ -44,7 +44,7 @@ button,a { -webkit-tap-highlight-color:transparent; }
 .section-title>span:first-child,.section-title h2 { position:relative; z-index:1; background:var(--bg); box-shadow:0 0 0 7px var(--bg); }
 .section-title h2 { margin:0; font:500 12px/1 var(--mono); color:#d0d0d0; }
 .section-title__line { height:1px; flex:1; background:var(--line); }
-.about-section,.projects-section,.tech-section { padding-top:0; }
+.section.about-section,.section.projects-section,.section.tech-section { padding-top:0; }
 .about-section,.tech-section { overflow:clip; overflow-clip-margin:8px; }
 .projects-section { overflow:visible; }
 .project-card { position:relative; --project-progress:0; --project-copy-y:14px; --project-title-shift:0vw; --project-line-x:0%; --project-mask-y:3.5%; --project-mask-x:2.5%; --project-scale:.94; }
