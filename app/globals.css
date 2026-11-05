@@ -10,10 +10,10 @@ button,a { -webkit-tap-highlight-color:transparent; }
 :focus-visible { outline:2px solid var(--fg); outline-offset:5px; }
 ::selection { background:var(--fg); color:var(--bg); }
 .nav-shell { position:fixed; z-index:100; top:22px; left:0; right:0; height:auto; display:flex; align-items:center; justify-content:center; padding:0 20px; pointer-events:none; }
-.nav-links { position:relative; display:flex; align-items:center; gap:0; max-width:100%; padding:0; border:0; background:transparent; box-shadow:none; font:500 11px/1 var(--mono); text-transform:uppercase; letter-spacing:.04em; pointer-events:auto; }
+.nav-links { position:relative; isolation:isolate; display:flex; align-items:center; gap:0; max-width:100%; padding:0; overflow:visible; border:0; background:transparent; box-shadow:none; font:500 11px/1 var(--mono); text-transform:uppercase; letter-spacing:.04em; pointer-events:auto; }
 .nav-links::before,.nav-links--ready::before { display:none; }
-.nav-links>a { position:relative; isolation:isolate; display:flex; align-items:center; justify-content:center; min-height:52px; padding:0 clamp(18px,2.3vw,38px); overflow:hidden; border:0; border-radius:0; color:#6d6d6d; transition:color .28s,text-shadow .28s; }
-.nav-links>a::before { position:absolute; z-index:-1; bottom:-48%; left:50%; width:120%; height:105%; border-radius:50%; background:radial-gradient(ellipse at center,rgba(255,255,255,.3) 0%,rgba(255,255,255,.14) 34%,rgba(255,255,255,.04) 56%,transparent 76%); content:""; filter:blur(6px); opacity:0; transform:translateX(-50%) scale(.58); transition:opacity .5s ease-in-out,transform .58s cubic-bezier(.22,1,.36,1); }
+.nav-links>a { position:relative; display:flex; align-items:center; justify-content:center; min-height:52px; padding:0 clamp(18px,2.3vw,38px); overflow:visible; border:0; border-radius:0; color:#6d6d6d; transition:color .28s,text-shadow .28s; }
+.nav-links>a::before { position:absolute; z-index:-1; bottom:-62%; left:50%; width:250%; height:135%; border-radius:50%; background:radial-gradient(ellipse at center,rgba(255,255,255,.28) 0%,rgba(255,255,255,.12) 32%,rgba(255,255,255,.035) 58%,transparent 78%); content:""; filter:blur(10px); opacity:0; transform:translateX(-50%) scale(.52); transition:opacity .5s ease-in-out,transform .58s cubic-bezier(.22,1,.36,1); }
 .nav-links>a::after { position:absolute; right:24%; bottom:3px; left:24%; height:1px; background:rgba(255,255,255,.72); content:""; opacity:.7; transform:scaleX(0); transform-origin:center; transition:transform .32s cubic-bezier(.22,1,.36,1),opacity .28s; }
 .nav-links>a:hover { color:#e8e7e3; text-shadow:0 0 10px rgba(255,255,255,.24); }
 .nav-links>a:hover::before,.nav-links>a:focus-visible::before { opacity:.7; transform:translateX(-50%) scale(1.08); }
