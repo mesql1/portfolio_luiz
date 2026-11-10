@@ -21,7 +21,7 @@ export function Navbar({ active, onNavigate }: { active: string; onNavigate: (id
   const activeIndex = navItems.findIndex(([id]) => id === active);
   const focalIndex = hoveredIndex ?? activeIndex;
 
-  return <header className="nav-shell"><nav className="nav-links nav-links--dock" aria-label="Navegação principal" onMouseLeave={() => setHoveredIndex(null)}>{navItems.map(([id, label, Icon], index) => {
+  return <header className="nav-shell"><nav className="nav-links nav-links--dock nav-links--liquid" aria-label="Navegação principal" onMouseLeave={() => setHoveredIndex(null)}><span className={`nav-liquid-lens nav-liquid-lens--${Math.max(focalIndex, 0)} ${focalIndex >= 0 ? "is-visible" : ""}`} aria-hidden="true" />{navItems.map(([id, label, Icon], index) => {
     const distance = focalIndex < 0 ? 2 : Math.abs(index - focalIndex);
     const proximityClass = distance === 0 ? "nav-item--focus" : distance === 1 ? "nav-item--adjacent" : "nav-item--far";
     return <a
@@ -34,7 +34,7 @@ export function Navbar({ active, onNavigate }: { active: string; onNavigate: (id
       onFocus={() => setHoveredIndex(index)}
       onBlur={() => setHoveredIndex(null)}
       onClick={() => { setHoveredIndex(null); onNavigate(id); }}
-    ><Icon aria-hidden="true" /><small>{label}</small><i aria-hidden="true" /></a>;
+    ><span className="nav-orb"><Icon aria-hidden="true" /></span><small>{label}</small><i aria-hidden="true" /></a>;
   })}</nav></header>;
 }
 
