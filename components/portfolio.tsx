@@ -1,12 +1,12 @@
 "use client";
 
 import { type CSSProperties, useEffect, useRef, useState } from "react";
-import { ArrowDown, ArrowUpRight, BriefcaseBusiness, Camera, ChevronLeft, ChevronRight, Code2, Mail, MessageCircle } from "lucide-react";
+import { ArrowDown, ArrowUpRight, BriefcaseBusiness, Camera, ChevronLeft, ChevronRight, Code2, FolderKanban, Mail, MessageCircle, UserRound, Wrench } from "lucide-react";
 import { profile, projects, technologyGroups } from "@/lib/portfolio-data";
 import { HeroParticles } from "@/components/hero-particles";
 import { AmbientMeta, ScrollToTop, SectionCorners } from "@/components/portfolio-primitives";
 
-const navItems = [["sobre", "Sobre"], ["projetos", "Projetos"], ["tecnologias", "Tecnologias"], ["contato", "Contato"]] as const;
+const navItems = [["sobre", "Sobre", UserRound], ["projetos", "Projetos", FolderKanban], ["tecnologias", "Tecnologias", Wrench], ["contato", "Contato", Mail]] as const;
 
 export function Button({ href, children, variant = "primary", label }: { href: string; children: React.ReactNode; variant?: "primary" | "outline" | "text"; label?: string }) {
   return <a className={`button button--${variant}`} href={href} aria-label={label} target={href.startsWith("http") ? "_blank" : undefined} rel={href.startsWith("http") ? "noreferrer" : undefined}><span>{children}</span><ArrowUpRight aria-hidden="true" size={18} /></a>;
@@ -21,19 +21,20 @@ export function Navbar({ active, onNavigate }: { active: string; onNavigate: (id
   const activeIndex = navItems.findIndex(([id]) => id === active);
   const focalIndex = hoveredIndex ?? activeIndex;
 
-  return <header className="nav-shell"><nav className="nav-links" aria-label="Navegação principal" onMouseLeave={() => setHoveredIndex(null)}>{navItems.map(([id, label], index) => {
+  return <header className="nav-shell"><nav className="nav-links nav-links--dock" aria-label="Navegação principal" onMouseLeave={() => setHoveredIndex(null)}>{navItems.map(([id, label, Icon], index) => {
     const distance = focalIndex < 0 ? 2 : Math.abs(index - focalIndex);
     const proximityClass = distance === 0 ? "nav-item--focus" : distance === 1 ? "nav-item--adjacent" : "nav-item--far";
     return <a
       key={id}
       className={`${active === id ? "active " : ""}${proximityClass}`}
       href={`#${id}`}
+      aria-label={label}
       aria-current={active === id ? "location" : undefined}
       onMouseEnter={() => setHoveredIndex(index)}
       onFocus={() => setHoveredIndex(index)}
       onBlur={() => setHoveredIndex(null)}
       onClick={() => { setHoveredIndex(null); onNavigate(id); }}
-    ><span>{label}</span></a>;
+    ><Icon aria-hidden="true" /><small>{label}</small><i aria-hidden="true" /></a>;
   })}</nav></header>;
 }
 
