@@ -33,7 +33,7 @@ export function Navbar({ active, onNavigate }: { active: string; onNavigate: (id
       onFocus={() => setHoveredIndex(index)}
       onBlur={() => setHoveredIndex(null)}
       onClick={() => { setHoveredIndex(null); onNavigate(id); }}
-    >{label}</a>;
+    ><span>{label}</span></a>;
   })}</nav></header>;
 }
 
