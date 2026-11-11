@@ -1,7 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "motion/react";
 
 export type LiquidDockItem = readonly [id: string, label: string, icon: LucideIcon];
 
@@ -9,130 +16,85 @@ const BASE_SIZE = 44;
 const MAX_SIZE = 80;
 const MAGNET_RADIUS = 150;
 
-export function LiquidDock({
-  items,
-  active,
-  onNavigate,
-}: {
+function DockItem({ id, label, Icon, active, mouseX, onNavigate }: {
+  id: string;
+  label: string;
+  Icon: LucideIcon;
+  active: boolean;
+  mouseX: ReturnType<typeof useMotionValue<number>>;
+  onNavigate: (id: string) => void;
+}) {
+  const ref = useRef<HTMLAnchorElement>(null);
+  const [hovered, setHovered] = useState(false);
+  const distance = useTransform(mouseX, value => {
+    const bounds = ref.current?.getBoundingClientRect();
+    if (!bounds) return Number.POSITIVE_INFINITY;
+    return value - bounds.left - bounds.width / 2;
+  });
+  const sizeTarget = useTransform(distance, [-MAGNET_RADIUS, 0, MAGNET_RADIUS], [BASE_SIZE, MAX_SIZE, BASE_SIZE]);
+  const size = useSpring(sizeTarget, { mass: 0.1, stiffness: 150, damping: 12 });
+  const influence = useTransform(size, [BASE_SIZE, MAX_SIZE], [0, 1]);
+  const iconScale = useTransform(influence, [0, 1], [1, 1.16]);
+  const orbOpacity = useTransform(influence, [0, 1], [0.72, 1]);
+
+  return <motion.a
+    ref={ref}
+    href={"#" + id}
+    className={active ? "active" : ""}
+    aria-label={label}
+    aria-current={active ? "location" : undefined}
+    style={{ width: size, height: size, flexBasis: size }}
+    onHoverStart={() => setHovered(true)}
+    onHoverEnd={() => setHovered(false)}
+    onFocus={() => {
+      const bounds = ref.current?.getBoundingClientRect();
+      if (bounds) mouseX.set(bounds.left + bounds.width / 2);
+      setHovered(true);
+    }}
+    onBlur={() => {
+      mouseX.set(Number.POSITIVE_INFINITY);
+      setHovered(false);
+    }}
+    onClick={() => onNavigate(id)}
+    whileTap={{ y: 3, transition: { duration: 0.08 } }}
+  >
+    <motion.span className="nav-orb" aria-hidden="true" style={{ opacity: orbOpacity }}>
+      <motion.span className="nav-orb__icon" style={{ scale: iconScale }}><Icon /></motion.span>
+    </motion.span>
+    <AnimatePresence>
+      {hovered && <motion.small
+        initial={{ opacity: 0, y: 8, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 4, scale: 0.98 }}
+        transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+      >{label}</motion.small>}
+    </AnimatePresence>
+    <i aria-hidden="true" />
+  </motion.a>;
+}
+
+export function LiquidDock({ items, active, onNavigate }: {
   items: readonly LiquidDockItem[];
   active: string;
   onNavigate: (id: string) => void;
 }) {
-  const navRef = useRef<HTMLElement>(null);
-  const linkRefs = useRef<Array<HTMLAnchorElement | null>>([]);
-  const pointerX = useRef<number | null>(null);
-  const focusedIndex = useRef<number | null>(null);
-  const sizes = useRef<number[]>([]);
-  const velocities = useRef<number[]>([]);
-  const frame = useRef(0);
-
-  const animate = useCallback(() => {
-    frame.current = 0;
-    const links = linkRefs.current;
-    if (!links.length) return;
-
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const focusLink = focusedIndex.current === null ? null : links[focusedIndex.current];
-    const focusRect = focusLink?.getBoundingClientRect();
-    const interactionX = pointerX.current ?? (
-      focusRect ? focusRect.left + focusRect.width / 2 : null
-    );
-    let unsettled = false;
-
-    links.forEach((link, index) => {
-      if (!link) return;
-      const rect = link.getBoundingClientRect();
-      const center = rect.left + rect.width / 2;
-      const distance = interactionX === null ? Number.POSITIVE_INFINITY : Math.abs(interactionX - center);
-      const influence = reduced ? 0 : Math.max(0, 1 - distance / MAGNET_RADIUS);
-      const target = BASE_SIZE + (MAX_SIZE - BASE_SIZE) * influence;
-
-      const current = sizes.current[index] ?? BASE_SIZE;
-      let velocity = velocities.current[index] ?? 0;
-      velocity = velocity * 0.68 + (target - current) * 0.16;
-      let next = current + velocity;
-
-      if (Math.abs(target - next) < 0.02 && Math.abs(velocity) < 0.02) {
-        next = target;
-        velocity = 0;
-      } else {
-        unsettled = true;
-      }
-
-      sizes.current[index] = next;
-      velocities.current[index] = velocity;
-      link.style.setProperty("--dock-size", next.toFixed(3) + "px");
-      link.style.setProperty("--dock-influence", influence.toFixed(4));
-      link.style.zIndex = String(1 + Math.round(influence * 10));
-    });
-
-    if (unsettled) frame.current = window.requestAnimationFrame(animate);
-  }, []);
-
-  const schedule = useCallback(() => {
-    if (!frame.current) frame.current = window.requestAnimationFrame(animate);
-  }, [animate]);
-
-  useEffect(() => {
-    sizes.current = items.map(() => BASE_SIZE);
-    velocities.current = items.map(() => 0);
-    schedule();
-
-    const reset = () => {
-      pointerX.current = null;
-      schedule();
-    };
-    window.addEventListener("resize", reset);
-    return () => {
-      window.removeEventListener("resize", reset);
-      if (frame.current) window.cancelAnimationFrame(frame.current);
-    };
-  }, [items, schedule]);
-
+  const mouseX = useMotionValue(Number.POSITIVE_INFINITY);
   return <header className="nav-shell">
-    <nav
-      ref={navRef}
-      className="nav-links nav-links--dock nav-links--liquid nav-links--fisheye"
+    <motion.nav
+      className="nav-links nav-links--dock nav-links--liquid nav-links--fisheye nav-links--integrated"
       aria-label="Navegação principal"
-      onPointerEnter={event => {
-        if (event.pointerType === "touch") return;
-        pointerX.current = event.clientX;
-        schedule();
-      }}
-      onPointerMove={event => {
-        if (event.pointerType === "touch") return;
-        pointerX.current = event.clientX;
-        schedule();
-      }}
-      onPointerLeave={() => {
-        pointerX.current = null;
-        schedule();
-      }}
+      onMouseMove={event => mouseX.set(event.pageX)}
+      onMouseLeave={() => mouseX.set(Number.POSITIVE_INFINITY)}
     >
-      {items.map(([id, label, Icon], index) => <a
-        ref={node => { linkRefs.current[index] = node; }}
+      {items.map(([id, label, Icon]) => <DockItem
         key={id}
-        className={active === id ? "active" : ""}
-        href={"#" + id}
-        aria-label={label}
-        aria-current={active === id ? "location" : undefined}
-        onFocus={() => {
-          focusedIndex.current = index;
-          pointerX.current = null;
-          schedule();
-        }}
-        onBlur={() => {
-          focusedIndex.current = null;
-          schedule();
-        }}
-        onClick={() => onNavigate(id)}
-      >
-        <span className="nav-orb" aria-hidden="true">
-          <Icon />
-        </span>
-        <small>{label}</small>
-        <i aria-hidden="true" />
-      </a>)}
-    </nav>
+        id={id}
+        label={label}
+        Icon={Icon}
+        active={active === id}
+        mouseX={mouseX}
+        onNavigate={onNavigate}
+      />)}
+    </motion.nav>
   </header>;
 }
