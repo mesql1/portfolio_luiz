@@ -694,3 +694,62 @@ footer { min-height:180px; display:grid; grid-template-columns:1fr auto 1fr; ali
   .nav-liquid-lens { transition-property:opacity!important; }
   .nav-shell .nav-links.nav-links--liquid>a>.nav-orb { transition-property:opacity,color,border-color,background,box-shadow!important; }
 }
+
+
+/* Cursor-distance liquid dock. The shell stays fixed; only inner glass orbs react. */
+.nav-shell .nav-links.nav-links--dock.nav-links--cursor {
+  --dock-slot:52px;
+  --dock-gap:0px;
+  width:224px;
+  height:66px;
+  gap:0;
+  padding:7px 8px;
+}
+.nav-shell .nav-links.nav-links--cursor>a {
+  flex:0 0 var(--dock-slot);
+  width:var(--dock-slot);
+  height:var(--dock-slot);
+  min-height:var(--dock-slot);
+}
+.nav-shell .nav-links.nav-links--cursor>a>.nav-orb {
+  inset:5px;
+  transform:translate3d(0,0,0) scale(.78);
+  will-change:transform,opacity;
+  transition:color .16s ease,border-color .16s ease,background .16s ease,box-shadow .16s ease;
+}
+.nav-shell .nav-links.nav-links--cursor .nav-orb>svg {
+  transition:transform .18s ease;
+}
+.nav-shell .nav-links.nav-links--cursor>a:hover .nav-orb>svg,
+.nav-shell .nav-links.nav-links--cursor>a:focus-visible .nav-orb>svg {
+  transform:scale(1.1);
+}
+.nav-shell .nav-links.nav-links--cursor .nav-liquid-lens {
+  bottom:7px;
+  left:0;
+  width:var(--dock-slot);
+  height:var(--dock-slot);
+  opacity:0;
+  will-change:transform,opacity;
+  transition:opacity .18s ease;
+}
+.nav-shell .nav-links.nav-links--cursor>a>small { bottom:calc(100% + 10px); }
+.nav-shell .nav-links.nav-links--cursor>a>i { bottom:-2px; }
+@media (max-width:600px) {
+  .nav-shell .nav-links.nav-links--dock.nav-links--cursor {
+    --dock-slot:50px;
+    width:216px;
+    height:64px;
+    padding:7px 8px;
+  }
+  .nav-shell .nav-links.nav-links--cursor>a {
+    flex-basis:var(--dock-slot);
+    width:var(--dock-slot);
+    height:var(--dock-slot);
+    min-height:var(--dock-slot);
+  }
+  .nav-shell .nav-links.nav-links--cursor .nav-liquid-lens { bottom:7px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .nav-shell .nav-links.nav-links--cursor>a>.nav-orb { transform:none!important; }
+}

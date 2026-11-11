@@ -4,6 +4,7 @@ import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowUpRight, BriefcaseBusiness, Camera, ChevronLeft, ChevronRight, Code2, FolderKanban, Mail, MessageCircle, UserRound, Wrench } from "lucide-react";
 import { profile, projects, technologyGroups } from "@/lib/portfolio-data";
 import { HeroParticles } from "@/components/hero-particles";
+import { LiquidDock } from "@/components/liquid-dock";
 import { AmbientMeta, ScrollToTop, SectionCorners } from "@/components/portfolio-primitives";
 
 const navItems = [["sobre", "Sobre", UserRound], ["projetos", "Projetos", FolderKanban], ["tecnologias", "Tecnologias", Wrench], ["contato", "Contato", Mail]] as const;
@@ -14,28 +15,6 @@ export function Button({ href, children, variant = "primary", label }: { href: s
 
 export function SectionTitle({ index, children }: { index: string; children: React.ReactNode }) {
   return <div className="section-title reveal"><span>{index}</span><h2>... /{children} ...</h2><span className="section-title__line" aria-hidden="true" /></div>;
-}
-
-export function Navbar({ active, onNavigate }: { active: string; onNavigate: (id: string) => void }) {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const activeIndex = navItems.findIndex(([id]) => id === active);
-  const focalIndex = hoveredIndex ?? activeIndex;
-
-  return <header className="nav-shell"><nav className="nav-links nav-links--dock nav-links--liquid" aria-label="Navegação principal" onMouseLeave={() => setHoveredIndex(null)}><span className={`nav-liquid-lens nav-liquid-lens--${Math.max(focalIndex, 0)} ${focalIndex >= 0 ? "is-visible" : ""}`} aria-hidden="true" />{navItems.map(([id, label, Icon], index) => {
-    const distance = focalIndex < 0 ? 2 : Math.abs(index - focalIndex);
-    const proximityClass = distance === 0 ? "nav-item--focus" : distance === 1 ? "nav-item--adjacent" : "nav-item--far";
-    return <a
-      key={id}
-      className={`${active === id ? "active " : ""}${proximityClass}`}
-      href={`#${id}`}
-      aria-label={label}
-      aria-current={active === id ? "location" : undefined}
-      onMouseEnter={() => setHoveredIndex(index)}
-      onFocus={() => setHoveredIndex(index)}
-      onBlur={() => setHoveredIndex(null)}
-      onClick={() => { setHoveredIndex(null); onNavigate(id); }}
-    ><span className="nav-orb"><Icon aria-hidden="true" /></span><small>{label}</small><i aria-hidden="true" /></a>;
-  })}</nav></header>;
 }
 
 const projectSlides = {
@@ -326,7 +305,7 @@ export function Portfolio() {
     };
   }, []);
 
-  return <><Navbar active={active} onNavigate={setActive} /><AmbientMeta /><ScrollToTop /><main>
+  return <><LiquidDock items={navItems} active={active} onNavigate={setActive} /><AmbientMeta /><ScrollToTop /><main>
     <section id="inicio" className="hero"><SectionCorners /><HeroParticles /><div className="orbit orbit--hero" aria-hidden="true" /><div className="hero__eyebrow"><span>PORTFÓLIO / 2026</span><span>BASED IN BRAZIL</span></div><h1><span>backend</span><span>developer<i className="hero-cursor" aria-hidden="true" /></span></h1><div className="hero__bottom"><div><p>Desenvolvo aplicações backend, integrações com APIs e sistemas focados em automação e organização de dados.</p><div className="tag-list"><span>Python</span><span>Django</span><span>APIs</span><span>Automação</span></div></div><div className="hero__actions"><Button href="#projetos">Ver projetos</Button><Button href={profile.github} variant="outline">GitHub</Button></div></div><a className="scroll-cue" href="#projetos" aria-label="Rolar até projetos"><ArrowDown /><span>SCROLL</span></a></section>
     <section id="sobre" className="section about-section reveal reveal--section"><SectionCorners /><div className="orbit orbit--about" aria-hidden="true" /><SectionTitle index="01">Sobre mim</SectionTitle><div className="about-grid"><div className="about-copy reveal"><p className="lead">Olá, sou Luiz Mesquita, desenvolvedor com foco em <em>backend.</em></p><p>Atualmente desenvolvo projetos principalmente utilizando Python e venho aprofundando meus conhecimentos em desenvolvimento web, APIs, bancos de dados, automação e arquitetura de software.</p><p>Gosto de transformar problemas em aplicações funcionais, organizadas e fáceis de manter.</p></div><div className="identity-card identity-card--portrait reveal"><img className="identity-photo" src="profile/luiz-mesquita.png" alt="Luiz Mesquita" loading="lazy" decoding="async" /><div className="identity-card__portrait-copy"><span>BACKEND DEVELOPER</span><strong>Luiz Mesquita</strong><p>Construindo, aprendendo,<br />evoluindo.</p><code>Python · APIs · Automação</code></div></div></div></section>
     <section id="projetos" className="section projects-section reveal reveal--section"><SectionCorners /><SectionTitle index="02">Projetos selecionados</SectionTitle><ProjectCard project={projects[0]} /><ProjectCard project={projects[1]} reverse /><article className="coming-soon reveal"><span>03</span><div><small>EM DESENVOLVIMENTO</small><h3>Novos projetos backend e APIs em desenvolvimento.</h3></div><code>{"{ work_in_progress: true }"}</code></article></section>
