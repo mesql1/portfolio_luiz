@@ -13,8 +13,8 @@ import {
 export type LiquidDockItem = readonly [id: string, label: string, icon: LucideIcon];
 
 const BASE_SIZE = 44;
-const MAX_SIZE = 80;
-const MAGNET_RADIUS = 150;
+const MAX_SIZE = 68;
+const MAGNET_RADIUS = 130;
 
 function DockItem({ id, label, Icon, active, mouseX, onNavigate }: {
   id: string;
@@ -47,15 +47,16 @@ function DockItem({ id, label, Icon, active, mouseX, onNavigate }: {
     onHoverStart={() => setHovered(true)}
     onHoverEnd={() => setHovered(false)}
     onFocus={() => {
-      const bounds = ref.current?.getBoundingClientRect();
-      if (bounds) mouseX.set(bounds.left + bounds.width / 2);
       setHovered(true);
     }}
     onBlur={() => {
-      mouseX.set(Number.POSITIVE_INFINITY);
       setHovered(false);
     }}
-    onClick={() => onNavigate(id)}
+    onClick={() => {
+      mouseX.set(Number.POSITIVE_INFINITY);
+      setHovered(false);
+      onNavigate(id);
+    }}
     whileTap={{ y: 3, transition: { duration: 0.08 } }}
   >
     <motion.span className="nav-orb" aria-hidden="true" style={{ opacity: orbOpacity }}>
