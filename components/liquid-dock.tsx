@@ -5,6 +5,10 @@ import type { LucideIcon } from "lucide-react";
 
 export type LiquidDockItem = readonly [id: string, label: string, icon: LucideIcon];
 
+const BASE_SIZE = 44;
+const MAX_SIZE = 80;
+const MAGNET_RADIUS = 150;
+
 export function LiquidDock({
   items,
   active,
@@ -16,79 +20,53 @@ export function LiquidDock({
 }) {
   const navRef = useRef<HTMLElement>(null);
   const linkRefs = useRef<Array<HTMLAnchorElement | null>>([]);
-  const orbRefs = useRef<Array<HTMLSpanElement | null>>([]);
-  const lensRef = useRef<HTMLSpanElement>(null);
   const pointerX = useRef<number | null>(null);
-  const smoothX = useRef<number | null>(null);
-  const velocity = useRef(0);
-  const frame = useRef(0);
-  const hovering = useRef(false);
   const focusedIndex = useRef<number | null>(null);
-  const activeIndex = items.findIndex(([id]) => id === active);
-  const activeIndexRef = useRef(activeIndex);
-  activeIndexRef.current = activeIndex;
+  const sizes = useRef<number[]>([]);
+  const velocities = useRef<number[]>([]);
+  const frame = useRef(0);
 
-  const animate: () => void = useCallback(() => {
+  const animate = useCallback(() => {
     frame.current = 0;
-    const nav = navRef.current;
     const links = linkRefs.current;
-    const lens = lensRef.current;
-    if (!nav || !lens || !links.length) return;
+    if (!links.length) return;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const selectedIndex = focusedIndex.current ?? activeIndexRef.current;
-    const selected = selectedIndex >= 0 ? links[selectedIndex] : null;
-    const targetX = !reduced && hovering.current && pointerX.current !== null
-      ? pointerX.current
-      : selected
-        ? selected.getBoundingClientRect().left + selected.getBoundingClientRect().width / 2
-        : null;
+    const focusLink = focusedIndex.current === null ? null : links[focusedIndex.current];
+    const focusRect = focusLink?.getBoundingClientRect();
+    const interactionX = pointerX.current ?? (
+      focusRect ? focusRect.left + focusRect.width / 2 : null
+    );
+    let unsettled = false;
 
-    if (targetX === null) {
-      lens.style.opacity = "0";
-      orbRefs.current.forEach(orb => {
-        if (!orb) return;
-        orb.style.transform = "translate3d(0,0,0) scale(.78)";
-        orb.style.opacity = ".68";
-      });
-      smoothX.current = null;
-      velocity.current = 0;
-      return;
-    }
-
-    if (smoothX.current === null || reduced) smoothX.current = targetX;
-    const delta = targetX - smoothX.current;
-    velocity.current = reduced ? 0 : velocity.current * .7 + delta * .14;
-    smoothX.current += velocity.current;
-
-    const currentX = smoothX.current;
     links.forEach((link, index) => {
-      const orb = orbRefs.current[index];
-      if (!link || !orb) return;
+      if (!link) return;
       const rect = link.getBoundingClientRect();
       const center = rect.left + rect.width / 2;
-      const distance = Math.abs(center - currentX);
-      const influence = reduced
-        ? index === selectedIndex ? 1 : 0
-        : Math.max(0, 1 - distance / 92);
-      const scale = .78 + influence * .38;
-      const lift = -8 * influence;
-      orb.style.transform = `translate3d(0,${lift.toFixed(2)}px,0) scale(${scale.toFixed(4)})`;
-      orb.style.opacity = (.68 + influence * .32).toFixed(3);
+      const distance = interactionX === null ? Number.POSITIVE_INFINITY : Math.abs(interactionX - center);
+      const influence = reduced ? 0 : Math.max(0, 1 - distance / MAGNET_RADIUS);
+      const target = BASE_SIZE + (MAX_SIZE - BASE_SIZE) * influence;
+
+      const current = sizes.current[index] ?? BASE_SIZE;
+      let velocity = velocities.current[index] ?? 0;
+      velocity = velocity * 0.68 + (target - current) * 0.16;
+      let next = current + velocity;
+
+      if (Math.abs(target - next) < 0.02 && Math.abs(velocity) < 0.02) {
+        next = target;
+        velocity = 0;
+      } else {
+        unsettled = true;
+      }
+
+      sizes.current[index] = next;
+      velocities.current[index] = velocity;
+      link.style.setProperty("--dock-size", next.toFixed(3) + "px");
+      link.style.setProperty("--dock-influence", influence.toFixed(4));
+      link.style.zIndex = String(1 + Math.round(influence * 10));
     });
 
-    const navRect = nav.getBoundingClientRect();
-    const lensWidth = lens.offsetWidth;
-    const lensX = Math.min(
-      navRect.width - lensWidth - 8,
-      Math.max(8, currentX - navRect.left - lensWidth / 2),
-    );
-    lens.style.opacity = "1";
-    lens.style.transform = `translate3d(${lensX.toFixed(2)}px,0,0) scale(.94)`;
-
-    if (!reduced && (hovering.current || Math.abs(delta) > .1 || Math.abs(velocity.current) > .1)) {
-      frame.current = window.requestAnimationFrame(animate);
-    }
+    if (unsettled) frame.current = window.requestAnimationFrame(animate);
   }, []);
 
   const schedule = useCallback(() => {
@@ -96,52 +74,51 @@ export function LiquidDock({
   }, [animate]);
 
   useEffect(() => {
+    sizes.current = items.map(() => BASE_SIZE);
+    velocities.current = items.map(() => 0);
     schedule();
-    const update = () => {
-      smoothX.current = null;
+
+    const reset = () => {
+      pointerX.current = null;
       schedule();
     };
-    window.addEventListener("resize", update);
+    window.addEventListener("resize", reset);
     return () => {
-      window.removeEventListener("resize", update);
+      window.removeEventListener("resize", reset);
       if (frame.current) window.cancelAnimationFrame(frame.current);
     };
-  }, [active, schedule]);
+  }, [items, schedule]);
 
   return <header className="nav-shell">
     <nav
       ref={navRef}
-      className="nav-links nav-links--dock nav-links--liquid nav-links--cursor"
+      className="nav-links nav-links--dock nav-links--liquid nav-links--fisheye"
       aria-label="Navegação principal"
       onPointerEnter={event => {
         if (event.pointerType === "touch") return;
-        hovering.current = true;
         pointerX.current = event.clientX;
         schedule();
       }}
       onPointerMove={event => {
         if (event.pointerType === "touch") return;
-        hovering.current = true;
         pointerX.current = event.clientX;
         schedule();
       }}
       onPointerLeave={() => {
-        hovering.current = false;
         pointerX.current = null;
         schedule();
       }}
     >
-      <span ref={lensRef} className="nav-liquid-lens" aria-hidden="true" />
       {items.map(([id, label, Icon], index) => <a
         ref={node => { linkRefs.current[index] = node; }}
         key={id}
         className={active === id ? "active" : ""}
-        href={`#${id}`}
+        href={"#" + id}
         aria-label={label}
         aria-current={active === id ? "location" : undefined}
         onFocus={() => {
           focusedIndex.current = index;
-          hovering.current = false;
+          pointerX.current = null;
           schedule();
         }}
         onBlur={() => {
@@ -150,8 +127,8 @@ export function LiquidDock({
         }}
         onClick={() => onNavigate(id)}
       >
-        <span ref={node => { orbRefs.current[index] = node; }} className="nav-orb">
-          <Icon aria-hidden="true" />
+        <span className="nav-orb" aria-hidden="true">
+          <Icon />
         </span>
         <small>{label}</small>
         <i aria-hidden="true" />
