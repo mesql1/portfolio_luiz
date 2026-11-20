@@ -54,11 +54,9 @@ function DockItem({ id, label, Icon, active, mouseX, onNavigate }: {
       setHovered(false);
     }}
     onClick={() => {
-      mouseX.set(Number.POSITIVE_INFINITY);
       setHovered(false);
       onNavigate(id);
     }}
-    whileTap={{ y: 3, transition: { duration: 0.08 } }}
   >
     <motion.span className="nav-orb" aria-hidden="true" style={{ width: size, height: size, opacity: orbOpacity }}>
       <motion.span className="nav-orb__icon" style={{ scale: iconScale }}><Icon /></motion.span>
@@ -85,8 +83,10 @@ export function LiquidDock({ items, active, onNavigate }: {
     <motion.nav
       className="nav-links nav-links--dock nav-links--liquid nav-links--fisheye nav-links--integrated"
       aria-label="Navegação principal"
-      onMouseMove={event => mouseX.set(event.pageX)}
-      onMouseLeave={() => mouseX.set(Number.POSITIVE_INFINITY)}
+      onPointerMove={event => {
+        if (event.pointerType === "mouse") mouseX.set(event.clientX);
+      }}
+      onPointerLeave={() => mouseX.set(Number.POSITIVE_INFINITY)}
     >
       {items.map(([id, label, Icon]) => <DockItem
         key={id}
