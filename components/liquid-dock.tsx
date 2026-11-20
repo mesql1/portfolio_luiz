@@ -59,7 +59,7 @@ function DockItem({ id, label, Icon, active, mouseX, onNavigate }: {
     }}
     whileTap={{ y: 3, transition: { duration: 0.08 } }}
   >
-    <motion.span className="nav-orb" aria-hidden="true" style={{ opacity: orbOpacity }}>
+    <motion.span className="nav-orb" aria-hidden="true" style={{ width: size, height: size, opacity: orbOpacity }}>
       <motion.span className="nav-orb__icon" style={{ scale: iconScale }}><Icon /></motion.span>
     </motion.span>
     <AnimatePresence>
