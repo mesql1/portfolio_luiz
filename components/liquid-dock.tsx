@@ -33,6 +33,7 @@ function DockItem({ id, label, Icon, active, mouseX, onNavigate }: {
   });
   const sizeTarget = useTransform(distance, [-MAGNET_RADIUS, 0, MAGNET_RADIUS], [BASE_SIZE, MAX_SIZE, BASE_SIZE]);
   const size = useSpring(sizeTarget, { mass: 0.1, stiffness: 150, damping: 12 });
+  const slotSize = useTransform(size, value => value + 8);
   const influence = useTransform(size, [BASE_SIZE, MAX_SIZE], [0, 1]);
   const iconScale = useTransform(influence, [0, 1], [1, 1.16]);
   const orbOpacity = useTransform(influence, [0, 1], [0.72, 1]);
@@ -43,7 +44,7 @@ function DockItem({ id, label, Icon, active, mouseX, onNavigate }: {
     className={active ? "active" : ""}
     aria-label={label}
     aria-current={active ? "location" : undefined}
-    style={{ width: size, flexBasis: size }}
+    style={{ width: slotSize, flexBasis: slotSize }}
     onHoverStart={() => setHovered(true)}
     onHoverEnd={() => setHovered(false)}
     onFocus={() => {
