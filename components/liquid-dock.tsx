@@ -43,7 +43,7 @@ function DockItem({ id, label, Icon, active, mouseX, onNavigate }: {
     className={active ? "active" : ""}
     aria-label={label}
     aria-current={active ? "location" : undefined}
-    style={{ width: size, height: size, flexBasis: size }}
+    style={{ width: size, flexBasis: size }}
     onHoverStart={() => setHovered(true)}
     onHoverEnd={() => setHovered(false)}
     onFocus={() => {
